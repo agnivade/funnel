@@ -11,9 +11,12 @@ import (
 )
 
 type Consumer struct {
-	DirName  string
+	DirName string
+
+	// internal stuff
 	currFile *os.File
 	writer   *bufio.Writer
+	feed     chan string
 }
 
 func (c *Consumer) Start() {
@@ -26,30 +29,25 @@ func (c *Consumer) Start() {
 
 	c.newFile()
 
-	signal_chan := make(chan os.Signal, 1)
-	signal.Notify(signal_chan,
-		os.Interrupt, syscall.SIGPIPE)
+	c.setupSignalHandling()
 
-	// Block until a signal is received.
-	go func(signal_chan chan os.Signal) {
-		<-signal_chan
-		c.CleanUp()
-		os.Exit(1)
-	}(signal_chan)
+	c.feed = make(chan string)
+	go c.startFeed()
 
 	scanner := bufio.NewScanner(os.Stdin)
 	lines := 0
 	for scanner.Scan() {
 		lines++
-		if lines%10 == 0 {
+		if c.rollOverCondition() {
 			c.rollOver()
 		}
-		c.writeToFile(scanner.Text())
+		c.feed <- scanner.Text()
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Println(err)
-		// close channel
 	}
+	// close channel
+	close(c.feed)
 }
 
 func (c *Consumer) CleanUp() {
@@ -122,11 +120,26 @@ func (c *Consumer) rename() {
 	}
 }
 
-func (c *Consumer) writeToFile(line string) {
-	_, err := fmt.Fprintln(c.writer, line)
-	if err != nil {
-		fmt.Println(err)
-		return
+func (c *Consumer) startFeed() {
+	for line := range c.feed {
+		_, err := fmt.Fprintln(c.writer, line)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		c.writer.Flush()
 	}
-	c.writer.Flush()
+}
+
+func (c *Consumer) setupSignalHandling() {
+	signal_chan := make(chan os.Signal, 1)
+	signal.Notify(signal_chan,
+		os.Interrupt, syscall.SIGPIPE)
+
+	// Block until a signal is received.
+	go func(signal_chan chan os.Signal) {
+		<-signal_chan
+		c.CleanUp()
+		os.Exit(1)
+	}(signal_chan)
 }
