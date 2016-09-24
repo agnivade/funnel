@@ -11,17 +11,21 @@ import (
 )
 
 type Consumer struct {
-	DirName string
+	DirName        string
+	ActiveFileName string
 
 	// internal stuff
 	currFile *os.File
 	writer   *bufio.Writer
 	feed     chan string
 
+	// channel signallers
 	done         chan struct{}
 	rolloverChan chan struct{}
 	signal_chan  chan os.Signal
-	numLines     int
+
+	// variable to track write progress
+	numLines int
 }
 
 func (c *Consumer) Start() {
@@ -31,12 +35,12 @@ func (c *Consumer) Start() {
 
 	// make the dir along with parents
 	if err := os.MkdirAll(c.DirName, 0775); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
 	if err := c.newFile(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
@@ -49,11 +53,12 @@ func (c *Consumer) Start() {
 		c.numLines++
 		if c.rollOverCondition() {
 			c.rolloverChan <- struct{}{}
+			c.numLines = 0
 		}
 		c.feed <- scanner.Text()
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Println("scanner stopped- ", err)
+		fmt.Fprintln(os.Stderr, err)
 	}
 	// work is done, signalling done channel
 	c.done <- struct{}{}
@@ -69,27 +74,26 @@ func (c *Consumer) CleanUp() {
 
 	// close file handle
 	if c.currFile != nil {
-		err := c.currFile.Sync()
-		if err != nil {
-			fmt.Println(err)
+		if err := c.currFile.Sync(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			return
 		}
-		err = c.currFile.Close()
-		if err != nil {
-			fmt.Println(err)
+
+		if err := c.currFile.Close(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			return
 		}
 	}
 
 	// Rename the currfile to a rolled up one
 	if err := c.rename(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 }
 
 func (c *Consumer) newFile() error {
-	f, err := os.OpenFile(path.Join(c.DirName, "out.log"),
+	f, err := os.OpenFile(path.Join(c.DirName, c.ActiveFileName),
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_APPEND|os.O_EXCL,
 		0644)
 	if err != nil {
@@ -133,7 +137,7 @@ func (c *Consumer) rollOver() error {
 func (c *Consumer) rename() error {
 	t := time.Now()
 	err := os.Rename(
-		path.Join(c.DirName, "out.log"),
+		path.Join(c.DirName, c.ActiveFileName),
 		path.Join(c.DirName, t.Format("15_04_05.000-2006_01_02")+".log"),
 	)
 	if err != nil {
@@ -150,23 +154,23 @@ func (c *Consumer) startFeed() {
 		case line := <-c.feed:
 			_, err := fmt.Fprintln(c.writer, line)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Fprintln(os.Stderr, err)
 				return
 			}
 		case <-c.rolloverChan:
 			if err := c.rollOver(); err != nil {
-				fmt.Println(err)
+				fmt.Fprintln(os.Stderr, err)
 				return
 			}
 		case <-c.done:
 			ticker.Stop()
 			if err := c.writer.Flush(); err != nil {
-				fmt.Println(err)
+				fmt.Fprintln(os.Stderr, err)
 			}
 			return
 		case <-ticker.C:
 			if err := c.writer.Flush(); err != nil {
-				fmt.Println(err)
+				fmt.Fprintln(os.Stderr, err)
 			}
 		}
 	}
@@ -181,7 +185,6 @@ func (c *Consumer) setupSignalHandling() {
 	// Or EOF happens
 	go func() {
 		for _ = range c.signal_chan {
-			fmt.Println("Caught signal")
 		}
 	}()
 }
