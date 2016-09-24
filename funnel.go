@@ -152,6 +152,7 @@ func (c *Consumer) startFeed() {
 	for {
 		select {
 		case line := <-c.feed:
+			//TODO: process the line
 			_, err := fmt.Fprintln(c.writer, line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)

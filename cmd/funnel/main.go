@@ -4,6 +4,15 @@ import (
 	"github.com/agnivade/funnel"
 )
 
+// TODO: add testing
+// TODO: read from config
+
+// TODO: add flushing policies
+// TODO: add rollup policies
+
+// TODO: add line processor
+
+// files - config reader, rollup manager (gzip, deleting)
 func main() {
 	// Read config
 	c := &funnel.Consumer{
@@ -13,7 +22,3 @@ func main() {
 	c.Start()
 	defer c.CleanUp()
 }
-
-// TODO: if exit with log file exists, do not rollover that file
-
-// TODO: handle the return errors on all cases
