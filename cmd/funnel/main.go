@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/agnivade/funnel"
+	"os"
 )
 
 // TODO: add testing
-// TODO: read from config
+// TODO: read from config - add tests for config too
 
 // TODO: add flushing policies
 // TODO: add rollup policies
@@ -19,6 +20,6 @@ func main() {
 		DirName:        "log",
 		ActiveFileName: "out.log",
 	}
-	c.Start()
+	c.Start(os.Stdin)
 	defer c.CleanUp()
 }

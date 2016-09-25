@@ -6,3 +6,5 @@ build:
 install:
 	go install ./cmd/funnel
 
+test:
+	go test

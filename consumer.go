@@ -3,6 +3,7 @@ package funnel
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path"
@@ -28,7 +29,7 @@ type Consumer struct {
 	numLines int
 }
 
-func (c *Consumer) Start() {
+func (c *Consumer) Start(input_stream io.Reader) {
 	c.setupSignalHandling()
 	c.done = make(chan struct{})
 	c.rolloverChan = make(chan struct{})
@@ -47,15 +48,15 @@ func (c *Consumer) Start() {
 	c.feed = make(chan string)
 	go c.startFeed()
 
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(input_stream)
 	c.numLines = 0
 	for scanner.Scan() {
-		c.numLines++
 		if c.rollOverCondition() {
 			c.rolloverChan <- struct{}{}
 			c.numLines = 0
 		}
 		c.feed <- scanner.Text()
+		c.numLines++
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -105,7 +106,7 @@ func (c *Consumer) newFile() error {
 }
 
 func (c *Consumer) rollOverCondition() bool {
-	return c.numLines%40 == 0
+	return c.numLines > 0 && c.numLines%40 == 0
 }
 
 func (c *Consumer) rollOver() error {

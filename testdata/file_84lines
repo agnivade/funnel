@@ -1,0 +1,84 @@
+package main
+
+import (
+	"crypto/tls"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/unrolled/secure"
+	"github.com/urfave/negroni"
+)
+
+type LoggerMiddleWare struct {
+	Logger *log.Logger
+}
+
+// TODO: final program will split this into files for
+// 1. setting up routes
+// 2. setting up middleware
+// 3. the route handler will come from different packages
+
+func main() {
+	// Setting the logging
+	logger := log.New(os.Stdout, "[INFO] ", log.LstdFlags|log.Lshortfile)
+
+	// Setting up routes
+	router := mux.NewRouter()
+	router.HandleFunc("/", IndexHandler)
+	router.HandleFunc("/test", TestHandler)
+
+	// Creating secure middleware
+	secureMiddleWare := secure.New(secure.Options{
+		SSLRedirect:          true,
+		STSSeconds:           315360000,
+		STSIncludeSubdomains: true,
+		FrameDeny:            true,
+		ContentTypeNosniff:   true,
+	})
+	loggerMiddleWare := &LoggerMiddleWare{
+		Logger: logger,
+	}
+	// Creating negroni middleware
+	n := negroni.New()
+	n.Use(negroni.NewRecovery())
+	n.Use(negroni.HandlerFunc(loggerMiddleWare.handlerFunc()))
+	n.Use(negroni.HandlerFunc(secureMiddleWare.HandlerFuncWithNext))
+	n.UseHandler(router)
+
+	// Starting the server with config
+	logger.Println("Starting server on port 8080..")
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: n,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+	err := server.ListenAndServeTLS("server.pem", "server.key")
+	if err != nil {
+		logger.Fatal(err)
+	}
+}
+
+func (log *LoggerMiddleWare) handlerFunc() negroni.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		start := time.Now()
+		log.Logger.Printf("Received %s %s", r.Method, r.URL.Path)
+		if next != nil {
+			next(rw, r)
+		}
+		res := rw.(negroni.ResponseWriter)
+		log.Logger.Printf("Completed %v %s in %v", res.Status(), http.StatusText(res.Status()), time.Since(start))
+	}
+}
+
+func IndexHandler(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte("Hello world.\n"))
+}
+
+func TestHandler(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte("Well, this also works!.\n"))
+}
