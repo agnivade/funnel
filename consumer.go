@@ -48,18 +48,24 @@ func (c *Consumer) Start(input_stream io.Reader) {
 	c.feed = make(chan string)
 	go c.startFeed()
 
-	scanner := bufio.NewScanner(input_stream)
+	reader := bufio.NewReader(input_stream)
 	c.numLines = 0
-	for scanner.Scan() {
-		if c.rollOverCondition() {
-			c.rolloverChan <- struct{}{}
-			c.numLines = 0
+	for {
+		line, err := reader.ReadString('\n')
+		if line != "" {
+			if c.rollOverCondition() {
+				c.rolloverChan <- struct{}{}
+				c.numLines = 0
+			}
+			c.feed <- line
+			c.numLines++
 		}
-		c.feed <- scanner.Text()
-		c.numLines++
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		if err != nil {
+			if err != io.EOF {
+				fmt.Fprintln(os.Stderr, err)
+			}
+			break
+		}
 	}
 	// work is done, signalling done channel
 	c.done <- struct{}{}
@@ -154,7 +160,7 @@ func (c *Consumer) startFeed() {
 		select {
 		case line := <-c.feed:
 			//TODO: process the line
-			_, err := fmt.Fprintln(c.writer, line)
+			_, err := fmt.Fprint(c.writer, line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return

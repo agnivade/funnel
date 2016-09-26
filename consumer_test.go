@@ -5,21 +5,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 	"testing"
 )
 
 func TestRollover(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
+	dir, c := setupTest(t)
 	defer os.RemoveAll(dir)
-	c := &Consumer{
-		DirName:        dir,
-		ActiveFileName: "out.log",
-	}
+
 	f, err := os.Open("testdata/file_84lines")
 	if err != nil {
 		t.Fatal(err)
@@ -30,16 +22,13 @@ func TestRollover(t *testing.T) {
 	c.CleanUp()
 
 	// testing results
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
+	files := readTestDir(t, dir)
 
-	var i int
-	var file os.FileInfo
 	sep := []byte{'\n'}
-	for i, file = range files {
+	if len(files) != 3 {
+		t.Errorf("Incorrect no. of files created. Expected 3, Got %d", len(files))
+	}
+	for i, file := range files {
 		data, err := ioutil.ReadFile(path.Join(dir, file.Name()))
 		if err != nil {
 			t.Fatal(err)
@@ -58,54 +47,43 @@ func TestRollover(t *testing.T) {
 			}
 		}
 	}
-	if i != 2 {
-		t.Errorf("Incorrect no. of files created. Expected 3, Got %d", i+1)
-	}
 }
 
 func TestHugeLine(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
+	dir, c := setupTest(t)
 	defer os.RemoveAll(dir)
-	c := &Consumer{
-		DirName:        dir,
-		ActiveFileName: "out.log",
-	}
-	target_string := "this ishis hdg s ghdg sdogsdog sdogj osdos dgsodgosj dg sio jsdj gsdgs jdgo of  ojoijg ao jgoarg 38t3p0t8 gh39gh3q9 g huah gaerhg nolaeo ijaoghwtoj joigoawjg awjgpa goarigwo hw ghwogij wogjwg vmaijvowh goawjg wofpojefoi oweijfj owjowjf jfewfj weifjq qOF Qfjoq24 hgawjawo jawwp jwrgjwpgokweo aw jawoif oawjf waefj oawej oaewij fawew jawi ga jgaajg parjgpawogjwaogjwepg awgj waoigjawp gweo gwjag pwagpowaejgp jaweg wagwepgwaepogjwap ogjaw gw agjaw jsjdg sdsdgs doj sgo s"
-	reader := strings.NewReader(target_string)
+
+	// This file also contains arabic, indian and tibetan characters
+	// to test any ascii-utf8 codec incompatibility
+	target_bytes, err := ioutil.ReadFile("testdata/file_bigline")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	c.Start(reader)
+	r := bytes.NewReader(target_bytes)
+	c.Start(r)
 	c.CleanUp()
 
 	// testing results
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		t.Fatal(err)
-		return
+	files := readTestDir(t, dir)
+	if len(files) != 1 {
+		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", len(files))
 	}
-
-	var i int
-	var file os.FileInfo
-	for i, file = range files {
+	for _, file := range files {
 		data, err := ioutil.ReadFile(path.Join(dir, file.Name()))
 		if err != nil {
 			t.Fatal(err)
 			continue
 		}
-		cmp := strings.Compare(string(data[:len(data)-1]), target_string)
+		cmp := bytes.Compare(data, target_bytes)
 		if cmp != 0 {
-			t.Errorf("Incorrect string found. Expected- %s, Found- %s", target_string, string(data))
+			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(target_bytes), string(data))
 		}
 	}
-	if i != 0 {
-		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", i+1)
-	}
+
+}
+
+func TestNewLines(t *testing.T) {
 
 }
 
@@ -115,4 +93,26 @@ func TestJustEOF(t *testing.T) {
 
 func TestSendInterrupt(t *testing.T) {
 
+}
+
+func setupTest(t *testing.T) (string, *Consumer) {
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		t.Fatal(err)
+		return "", nil
+	}
+	c := &Consumer{
+		DirName:        dir,
+		ActiveFileName: "out.log",
+	}
+	return dir, c
+}
+
+func readTestDir(t *testing.T, dir string) []os.FileInfo {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+		return nil
+	}
+	return files
 }
