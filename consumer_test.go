@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 )
 
@@ -80,21 +81,72 @@ func TestHugeLine(t *testing.T) {
 			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(target_bytes), string(data))
 		}
 	}
-
 }
 
 func TestNewLines(t *testing.T) {
+	dir, c := setupTest(t)
+	defer os.RemoveAll(dir)
 
+	// This file also contains arabic, indian and tibetan characters
+	// to test any ascii-utf8 codec incompatibility
+	target_bytes, err := ioutil.ReadFile("testdata/file_newline")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	r := bytes.NewReader(target_bytes)
+	c.Start(r)
+	c.CleanUp()
+
+	// testing results
+	files := readTestDir(t, dir)
+	if len(files) != 1 {
+		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", len(files))
+	}
+	for _, file := range files {
+		data, err := ioutil.ReadFile(path.Join(dir, file.Name()))
+		if err != nil {
+			t.Fatal(err)
+			continue
+		}
+		cmp := bytes.Compare(data, target_bytes)
+		if cmp != 0 {
+			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(target_bytes), string(data))
+		}
+	}
 }
 
-func TestJustEOF(t *testing.T) {
+func TestEmptyString(t *testing.T) {
+	dir, c := setupTest(t)
+	defer os.RemoveAll(dir)
 
+	r := strings.NewReader("")
+	c.Start(r)
+	c.CleanUp()
+
+	// testing results
+	files := readTestDir(t, dir)
+	if len(files) != 1 {
+		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", len(files))
+	}
+	for _, file := range files {
+		data, err := ioutil.ReadFile(path.Join(dir, file.Name()))
+		if err != nil {
+			t.Fatal(err)
+			continue
+		}
+		cmp := bytes.Compare(data, []byte(""))
+		if cmp != 0 {
+			t.Errorf("Incorrect string found. Expected- %s, Found- %s", "", string(data))
+		}
+	}
 }
 
 func TestSendInterrupt(t *testing.T) {
 
 }
 
+// Internal helper functions
 func setupTest(t *testing.T) (string, *Consumer) {
 	dir, err := ioutil.TempDir("", "test")
 	if err != nil {
