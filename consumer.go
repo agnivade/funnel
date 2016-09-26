@@ -51,14 +51,14 @@ func (c *Consumer) Start(input_stream io.Reader) {
 	reader := bufio.NewReader(input_stream)
 	c.numLines = 0
 	for {
-		line, err := reader.ReadString('\n')
-		if line != "" {
-			if c.rollOverCondition() {
-				c.rolloverChan <- struct{}{}
-				c.numLines = 0
-			}
-			c.feed <- line
-			c.numLines++
+		var (
+			isPrefix bool  = true
+			err      error = nil
+			line, ln []byte
+		)
+		for isPrefix && err == nil {
+			line, isPrefix, err = reader.ReadLine()
+			ln = append(ln, line...)
 		}
 		if err != nil {
 			if err != io.EOF {
@@ -66,6 +66,13 @@ func (c *Consumer) Start(input_stream io.Reader) {
 			}
 			break
 		}
+
+		if c.rollOverCondition() {
+			c.rolloverChan <- struct{}{}
+			c.numLines = 0
+		}
+		c.feed <- string(ln)
+		c.numLines++
 	}
 	// work is done, signalling done channel
 	c.done <- struct{}{}
@@ -160,7 +167,7 @@ func (c *Consumer) startFeed() {
 		select {
 		case line := <-c.feed:
 			//TODO: process the line
-			_, err := fmt.Fprint(c.writer, line)
+			_, err := fmt.Fprintln(c.writer, line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return
