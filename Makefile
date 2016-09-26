@@ -1,4 +1,4 @@
-all: build
+all: test install
 
 build:
 	go build ./cmd/funnel
