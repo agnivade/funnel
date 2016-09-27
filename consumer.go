@@ -51,28 +51,23 @@ func (c *Consumer) Start(input_stream io.Reader) {
 	reader := bufio.NewReader(input_stream)
 	c.numLines = 0
 	for {
-		var (
-			isPrefix bool  = true
-			err      error = nil
-			line, ln []byte
-		)
-		for isPrefix && err == nil {
-			line, isPrefix, err = reader.ReadLine()
-			ln = append(ln, line...)
+		// This will return a line until delimiter
+		// If delimiter is not found, it returns the line with error
+		// so line will always be available
+		// Then we check for error and quit
+		line, err := reader.ReadString('\n')
+		if c.rollOverCondition() {
+			c.rolloverChan <- struct{}{}
+			c.numLines = 0
 		}
+		c.feed <- line
+		c.numLines++
 		if err != nil {
 			if err != io.EOF {
 				fmt.Fprintln(os.Stderr, err)
 			}
 			break
 		}
-
-		if c.rollOverCondition() {
-			c.rolloverChan <- struct{}{}
-			c.numLines = 0
-		}
-		c.feed <- string(ln)
-		c.numLines++
 	}
 	// work is done, signalling done channel
 	c.done <- struct{}{}
@@ -81,11 +76,6 @@ func (c *Consumer) Start(input_stream io.Reader) {
 }
 
 func (c *Consumer) CleanUp() {
-	// flush writer
-	if c.writer != nil {
-		c.writer.Flush()
-	}
-
 	// close file handle
 	if c.currFile != nil {
 		if err := c.currFile.Sync(); err != nil {
@@ -167,7 +157,7 @@ func (c *Consumer) startFeed() {
 		select {
 		case line := <-c.feed:
 			//TODO: process the line
-			_, err := fmt.Fprintln(c.writer, line)
+			_, err := fmt.Fprint(c.writer, line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return

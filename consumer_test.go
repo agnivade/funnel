@@ -77,7 +77,7 @@ func TestHugeLine(t *testing.T) {
 			continue
 		}
 		// removing the newline character at the end
-		cmp := bytes.Compare(data[:len(data)-1], target_bytes)
+		cmp := bytes.Compare(data, target_bytes)
 		if cmp != 0 {
 			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(target_bytes), string(data))
 		}
@@ -144,7 +144,7 @@ func TestEmptyString(t *testing.T) {
 }
 
 func TestSendInterrupt(t *testing.T) {
-
+	// TODO
 }
 
 // Internal helper functions
