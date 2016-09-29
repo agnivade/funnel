@@ -7,4 +7,4 @@ install:
 	go install ./cmd/funnel
 
 test:
-	go test
+	go test -race -v

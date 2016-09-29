@@ -18,9 +18,8 @@ func TestRollover(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
+	defer f.Close()
 	c.Start(f)
-	f.Close()
-	c.CleanUp()
 
 	// testing results
 	files := readTestDir(t, dir)
@@ -63,7 +62,6 @@ func TestHugeLine(t *testing.T) {
 	}
 	r := bytes.NewReader(target_bytes)
 	c.Start(r)
-	c.CleanUp()
 
 	// testing results
 	files := readTestDir(t, dir)
@@ -97,7 +95,6 @@ func TestNewLines(t *testing.T) {
 	}
 	r := bytes.NewReader(target_bytes)
 	c.Start(r)
-	c.CleanUp()
 
 	// testing results
 	files := readTestDir(t, dir)
@@ -123,7 +120,6 @@ func TestEmptyString(t *testing.T) {
 
 	r := strings.NewReader("")
 	c.Start(r)
-	c.CleanUp()
 
 	// testing results
 	files := readTestDir(t, dir)

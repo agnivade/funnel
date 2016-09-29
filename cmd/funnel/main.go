@@ -5,7 +5,6 @@ import (
 	"os"
 )
 
-// TODO: add testing
 // TODO: read from config - add tests for config too
 
 // TODO: add flushing policies
@@ -21,5 +20,4 @@ func main() {
 		ActiveFileName: "out.log",
 	}
 	c.Start(os.Stdin)
-	defer c.CleanUp()
 }

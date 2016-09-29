@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -24,6 +25,7 @@ type Consumer struct {
 	done         chan struct{}
 	rolloverChan chan struct{}
 	signal_chan  chan os.Signal
+	wg           sync.WaitGroup
 
 	// variable to track write progress
 	numLines int
@@ -70,12 +72,14 @@ func (c *Consumer) Start(input_stream io.Reader) {
 		}
 	}
 	// work is done, signalling done channel
+	c.wg.Add(1)
 	c.done <- struct{}{}
+	c.wg.Wait()
 	// quitting from signal handler
 	close(c.signal_chan)
 }
 
-func (c *Consumer) CleanUp() {
+func (c *Consumer) cleanUp() {
 	// close file handle
 	if c.currFile != nil {
 		if err := c.currFile.Sync(); err != nil {
@@ -88,7 +92,6 @@ func (c *Consumer) CleanUp() {
 			return
 		}
 	}
-
 	// Rename the currfile to a rolled up one
 	if err := c.rename(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -172,6 +175,8 @@ func (c *Consumer) startFeed() {
 			if err := c.writer.Flush(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
+			c.cleanUp()
+			c.wg.Done()
 			return
 		case <-ticker.C:
 			if err := c.writer.Flush(); err != nil {
