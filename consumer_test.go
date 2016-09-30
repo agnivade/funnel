@@ -150,9 +150,12 @@ func setupTest(t *testing.T) (string, *Consumer) {
 		t.Fatal(err)
 		return "", nil
 	}
+
 	c := &Consumer{
-		DirName:        dir,
-		ActiveFileName: "out.log",
+		Config: &Config{
+			DirName:        dir,
+			ActiveFileName: "out.log",
+		},
 	}
 	return dir, c
 }

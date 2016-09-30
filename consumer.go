@@ -13,8 +13,7 @@ import (
 )
 
 type Consumer struct {
-	DirName        string
-	ActiveFileName string
+	Config *Config
 
 	// internal stuff
 	currFile *os.File
@@ -37,7 +36,7 @@ func (c *Consumer) Start(input_stream io.Reader) {
 	c.rolloverChan = make(chan struct{})
 
 	// make the dir along with parents
-	if err := os.MkdirAll(c.DirName, 0775); err != nil {
+	if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -100,7 +99,7 @@ func (c *Consumer) cleanUp() {
 }
 
 func (c *Consumer) newFile() error {
-	f, err := os.OpenFile(path.Join(c.DirName, c.ActiveFileName),
+	f, err := os.OpenFile(path.Join(c.Config.DirName, c.Config.ActiveFileName),
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_APPEND|os.O_EXCL,
 		0644)
 	if err != nil {
@@ -144,8 +143,8 @@ func (c *Consumer) rollOver() error {
 func (c *Consumer) rename() error {
 	t := time.Now()
 	err := os.Rename(
-		path.Join(c.DirName, c.ActiveFileName),
-		path.Join(c.DirName, t.Format("15_04_05.000-2006_01_02")+".log"),
+		path.Join(c.Config.DirName, c.Config.ActiveFileName),
+		path.Join(c.Config.DirName, t.Format("15_04_05.000-2006_01_02")+".log"),
 	)
 	if err != nil {
 		return err

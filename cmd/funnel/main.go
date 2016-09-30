@@ -15,9 +15,15 @@ import (
 // files - config reader, rollup manager (gzip, deleting)
 func main() {
 	// Read config
+	cfg, err := GetConfig()
+	if err != nil {
+		// TODO: check if this is idiomatic or not
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+
+	// Initialise consumer
 	c := &funnel.Consumer{
-		DirName:        "log",
-		ActiveFileName: "out.log",
+		Config: cfg,
 	}
 	c.Start(os.Stdin)
 }

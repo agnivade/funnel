@@ -1,0 +1,6 @@
+# Sample config file
+
+[logging]
+directory = "log"
+active_file_name = "out.log"
+
