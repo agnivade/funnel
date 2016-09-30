@@ -1,6 +1,21 @@
 # Sample config file
+# The values mentioned are the default values
 
 [logging]
 directory = "log"
 active_file_name = "out.log"
 
+[rotation]
+lines = 100
+file_size_bytes = 1000000
+
+[flushing]
+time_interval_secs = 5
+max_bytes = 10000000
+
+[rollup]
+file_rename_format = "TBD"
+
+[misc]
+prepend_timestamp = false
+expose_stats_endpoint = false

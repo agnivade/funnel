@@ -112,7 +112,7 @@ func (c *Consumer) newFile() error {
 }
 
 func (c *Consumer) rollOverCondition() bool {
-	return c.numLines > 0 && c.numLines%40 == 0
+	return c.numLines > 0 && c.numLines%c.Config.RotationMaxLines == 0
 }
 
 func (c *Consumer) rollOver() error {
@@ -154,8 +154,8 @@ func (c *Consumer) rename() error {
 }
 
 func (c *Consumer) startFeed() {
-	// Will flush the writer every 5 sec
-	ticker := time.NewTicker(5 * time.Second)
+	// Will flush the writer at some intervals
+	ticker := time.NewTicker(time.Duration(c.Config.FlushingTimeIntervalSecs) * time.Second)
 	for {
 		select {
 		case line := <-c.feed:

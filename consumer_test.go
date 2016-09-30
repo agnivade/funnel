@@ -153,8 +153,11 @@ func setupTest(t *testing.T) (string, *Consumer) {
 
 	c := &Consumer{
 		Config: &Config{
-			DirName:        dir,
-			ActiveFileName: "out.log",
+			DirName:                  dir,
+			ActiveFileName:           "out.log",
+			RotationMaxLines:         40,
+			RotationMaxBytes:         1000000,
+			FlushingTimeIntervalSecs: 5,
 		},
 	}
 	return dir, c

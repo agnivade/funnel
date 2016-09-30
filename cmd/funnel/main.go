@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/agnivade/funnel"
 	"os"
 )
@@ -12,13 +13,15 @@ import (
 
 // TODO: add line processor
 
+// TODO: add http stats endpoint conditionally
+
 // files - config reader, rollup manager (gzip, deleting)
 func main() {
 	// Read config
-	cfg, err := GetConfig()
+	cfg, err := funnel.GetConfig()
 	if err != nil {
-		// TODO: check if this is idiomatic or not
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		fmt.Println("Error in config file: ", err)
+		os.Exit(1)
 	}
 
 	// Initialise consumer
