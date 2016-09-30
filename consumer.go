@@ -23,14 +23,15 @@ type Consumer struct {
 	// channel signallers
 	done         chan struct{}
 	rolloverChan chan struct{}
-	signal_chan  chan os.Signal
+	signalChan   chan os.Signal
 	wg           sync.WaitGroup
 
 	// variable to track write progress
-	numLines int
+	numLines      int64
+	fileSizeBytes int64
 }
 
-func (c *Consumer) Start(input_stream io.Reader) {
+func (c *Consumer) Start(inputStream io.Reader) {
 	c.setupSignalHandling()
 	c.done = make(chan struct{})
 	c.rolloverChan = make(chan struct{})
@@ -49,7 +50,7 @@ func (c *Consumer) Start(input_stream io.Reader) {
 	c.feed = make(chan string)
 	go c.startFeed()
 
-	reader := bufio.NewReader(input_stream)
+	reader := bufio.NewReader(inputStream)
 	c.numLines = 0
 	for {
 		// This will return a line until delimiter
@@ -75,7 +76,7 @@ func (c *Consumer) Start(input_stream io.Reader) {
 	c.done <- struct{}{}
 	c.wg.Wait()
 	// quitting from signal handler
-	close(c.signal_chan)
+	close(c.signalChan)
 }
 
 func (c *Consumer) cleanUp() {
@@ -186,14 +187,14 @@ func (c *Consumer) startFeed() {
 }
 
 func (c *Consumer) setupSignalHandling() {
-	c.signal_chan = make(chan os.Signal, 1)
-	signal.Notify(c.signal_chan,
+	c.signalChan = make(chan os.Signal, 1)
+	signal.Notify(c.signalChan,
 		os.Interrupt, syscall.SIGPIPE)
 
 	// Block until a signal is received.
 	// Or EOF happens
 	go func() {
-		for _ = range c.signal_chan {
+		for _ = range c.signalChan {
 		}
 	}()
 }
