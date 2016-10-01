@@ -9,6 +9,7 @@ const (
 	APP_NAME = "funnel"
 )
 
+// Config holds all the config settings
 type Config struct {
 	DirName        string
 	ActiveFileName string
@@ -19,6 +20,8 @@ type Config struct {
 	FlushingTimeIntervalSecs int
 }
 
+// GetConfig returns the config struct which is then passed
+// to the consumer
 func GetConfig() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("/etc/" + APP_NAME + "/")

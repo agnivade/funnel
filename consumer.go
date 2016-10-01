@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// Consumer is the main struct which holds all the stuff
+// necessary to run the code
 type Consumer struct {
 	Config *Config
 
@@ -31,25 +33,30 @@ type Consumer struct {
 	bytesWritten uint64
 }
 
+// Start takes the input stream and begins reading line by line
+// buffering the output to a file and flushing at set intervals
 func (c *Consumer) Start(inputStream io.Reader) {
 	c.setupSignalHandling()
 	c.done = make(chan struct{})
 	c.rolloverChan = make(chan struct{})
 
-	// make the dir along with parents
+	// Make the dir along with parents
 	if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
+	// Create the file
 	if err := c.newFile(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
+	// Create the line feed channel and start the feed goroutine
 	c.feed = make(chan string)
 	go c.startFeed()
 
+	// Get the reader to the input stream and set initial counters
 	reader := bufio.NewReader(inputStream)
 	c.linesWritten = 0
 	c.bytesWritten = 0
@@ -59,14 +66,21 @@ func (c *Consumer) Start(inputStream io.Reader) {
 		// so line will always be available
 		// Then we check for error and quit
 		line, err := reader.ReadString('\n')
+
+		// Send to feed
 		c.feed <- line
+
+		// Update counters
 		c.linesWritten++
 		c.bytesWritten += uint64(len(line))
+
+		// Check for rollover
 		if c.rollOverCondition() {
 			c.rolloverChan <- struct{}{}
 			c.linesWritten = 0
 			c.bytesWritten = 0
 		}
+
 		if err != nil {
 			if err != io.EOF {
 				fmt.Fprintln(os.Stderr, err)
@@ -83,8 +97,7 @@ func (c *Consumer) Start(inputStream io.Reader) {
 }
 
 func (c *Consumer) cleanUp() {
-	// TODO: check if nothing is written to file, then delete
-	// close file handle
+	// Close file handle
 	if err := c.currFile.Sync(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -115,22 +128,22 @@ func (c *Consumer) newFile() error {
 }
 
 func (c *Consumer) rollOverCondition() bool {
+	// Return true if either lines written has exceeded
+	// or bytes written has exceeded
 	return c.linesWritten >= c.Config.RotationMaxLines ||
 		c.bytesWritten >= c.Config.RotationMaxBytes
 }
 
 func (c *Consumer) rollOver() error {
-	// flush writer
-	err := c.writer.Flush()
-	if err != nil {
+	// Flush writer
+	if err := c.writer.Flush(); err != nil {
 		return err
 	}
 
-	// close file handle
+	// Close file handle
 	if err := c.currFile.Sync(); err != nil {
 		return err
 	}
-
 	if err := c.currFile.Close(); err != nil {
 		return err
 	}
@@ -162,19 +175,19 @@ func (c *Consumer) startFeed() {
 	ticker := time.NewTicker(time.Duration(c.Config.FlushingTimeIntervalSecs) * time.Second)
 	for {
 		select {
-		case line := <-c.feed:
+		case line := <-c.feed: // Write to buffered writer
 			//TODO: process the line
 			_, err := fmt.Fprint(c.writer, line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return
 			}
-		case <-c.rolloverChan:
+		case <-c.rolloverChan: // Rollover file to new one
 			if err := c.rollOver(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return
 			}
-		case <-c.done:
+		case <-c.done: // Done signal received, close shop
 			ticker.Stop()
 			if err := c.writer.Flush(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
@@ -182,7 +195,7 @@ func (c *Consumer) startFeed() {
 			c.cleanUp()
 			c.wg.Done()
 			return
-		case <-ticker.C:
+		case <-ticker.C: // If tick happens, flush the writer
 			if err := c.writer.Flush(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
@@ -198,7 +211,7 @@ func (c *Consumer) setupSignalHandling() {
 	// Block until a signal is received.
 	// Or EOF happens
 	go func() {
-		for _ = range c.signalChan {
+		for range c.signalChan {
 		}
 	}()
 }

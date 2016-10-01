@@ -7,4 +7,4 @@ install:
 	go install ./cmd/funnel
 
 test:
-	go vet && go test -race -v
+	gofmt -l -s -w . && go tool vet -all . && go test -race -v
