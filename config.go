@@ -13,8 +13,8 @@ type Config struct {
 	DirName        string
 	ActiveFileName string
 
-	RotationMaxLines int64
-	RotationMaxBytes int64
+	RotationMaxLines int
+	RotationMaxBytes uint64
 
 	FlushingTimeIntervalSecs int
 }
@@ -28,10 +28,10 @@ func GetConfig() (*Config, error) {
 	// Set default values. They are overridden by config file values, if provided
 	setDefaults()
 
-	// TODO: check if file is present or not, only then read from it
 	// Find and read the config file
 	err := viper.ReadInConfig()
-	if err != nil { // Handle errors reading the config file
+	// Return the error only if config file is present
+	if err != nil && viper.ConfigFileUsed() != "" {
 		return nil, err
 	}
 
@@ -41,8 +41,8 @@ func GetConfig() (*Config, error) {
 	return &Config{
 		DirName:                  viper.GetString("logging.directory"),
 		ActiveFileName:           viper.GetString("logging.active_file_name"),
-		RotationMaxLines:         viper.GetInt64("rotation.lines"),
-		RotationMaxBytes:         viper.GetInt64("rotation.file_size_bytes"),
+		RotationMaxLines:         viper.GetInt("rotation.lines"),
+		RotationMaxBytes:         uint64(viper.GetInt64("rotation.file_size_bytes")),
 		FlushingTimeIntervalSecs: viper.GetInt("flushing.time_interval_secs"),
 	}, nil
 }

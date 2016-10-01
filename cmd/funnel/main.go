@@ -16,6 +16,9 @@ import (
 // TODO: add http stats endpoint conditionally
 
 // files - config reader, rollup manager (gzip, deleting)
+
+// read up about integer conversions
+// possibly make a post on golang nuts
 func main() {
 	// Read config
 	cfg, err := funnel.GetConfig()

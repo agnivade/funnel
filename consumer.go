@@ -27,8 +27,8 @@ type Consumer struct {
 	wg           sync.WaitGroup
 
 	// variable to track write progress
-	numLines      int64
-	fileSizeBytes int64
+	linesWritten int
+	bytesWritten uint64
 }
 
 func (c *Consumer) Start(inputStream io.Reader) {
@@ -51,19 +51,23 @@ func (c *Consumer) Start(inputStream io.Reader) {
 	go c.startFeed()
 
 	reader := bufio.NewReader(inputStream)
-	c.numLines = 0
+	c.linesWritten = 0
+	c.bytesWritten = 0
 	for {
 		// This will return a line until delimiter
 		// If delimiter is not found, it returns the line with error
 		// so line will always be available
 		// Then we check for error and quit
 		line, err := reader.ReadString('\n')
+		// TODO: check for empty line
+		c.feed <- line
+		c.linesWritten++
+		c.bytesWritten += uint64(len(line))
 		if c.rollOverCondition() {
 			c.rolloverChan <- struct{}{}
-			c.numLines = 0
+			c.linesWritten = 0
+			c.bytesWritten = 0
 		}
-		c.feed <- line
-		c.numLines++
 		if err != nil {
 			if err != io.EOF {
 				fmt.Fprintln(os.Stderr, err)
@@ -80,18 +84,18 @@ func (c *Consumer) Start(inputStream io.Reader) {
 }
 
 func (c *Consumer) cleanUp() {
+	// TODO: check if nothing is written to file, then delete
 	// close file handle
-	if c.currFile != nil {
-		if err := c.currFile.Sync(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return
-		}
-
-		if err := c.currFile.Close(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return
-		}
+	if err := c.currFile.Sync(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
+
+	if err := c.currFile.Close(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
 	// Rename the currfile to a rolled up one
 	if err := c.rename(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -112,7 +116,8 @@ func (c *Consumer) newFile() error {
 }
 
 func (c *Consumer) rollOverCondition() bool {
-	return c.numLines > 0 && c.numLines%c.Config.RotationMaxLines == 0
+	return c.linesWritten >= c.Config.RotationMaxLines ||
+		c.bytesWritten >= c.Config.RotationMaxBytes
 }
 
 func (c *Consumer) rollOver() error {
