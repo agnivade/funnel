@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/agnivade/funnel"
 	"os"
+
+	"github.com/agnivade/funnel"
 )
 
 // TODO: read from config - add tests for config too
