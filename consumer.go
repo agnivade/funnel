@@ -59,7 +59,6 @@ func (c *Consumer) Start(inputStream io.Reader) {
 		// so line will always be available
 		// Then we check for error and quit
 		line, err := reader.ReadString('\n')
-		// TODO: check for empty line
 		c.feed <- line
 		c.linesWritten++
 		c.bytesWritten += uint64(len(line))

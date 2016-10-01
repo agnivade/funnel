@@ -55,12 +55,12 @@ func TestHugeLine(t *testing.T) {
 
 	// This file also contains arabic, indian and tibetan characters
 	// to test any ascii-utf8 codec incompatibility
-	target_bytes, err := ioutil.ReadFile("testdata/file_bigline")
+	targetBytes, err := ioutil.ReadFile("testdata/file_bigline")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	r := bytes.NewReader(target_bytes)
+	r := bytes.NewReader(targetBytes)
 	c.Start(r)
 
 	// testing results
@@ -75,9 +75,9 @@ func TestHugeLine(t *testing.T) {
 			continue
 		}
 		// removing the newline character at the end
-		cmp := bytes.Compare(data, target_bytes)
+		cmp := bytes.Compare(data, targetBytes)
 		if cmp != 0 {
-			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(target_bytes), string(data))
+			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(targetBytes), string(data))
 		}
 	}
 }
@@ -88,12 +88,12 @@ func TestNewLines(t *testing.T) {
 
 	// This file also contains arabic, indian and tibetan characters
 	// to test any ascii-utf8 codec incompatibility
-	target_bytes, err := ioutil.ReadFile("testdata/file_newline")
+	targetBytes, err := ioutil.ReadFile("testdata/file_newline")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	r := bytes.NewReader(target_bytes)
+	r := bytes.NewReader(targetBytes)
 	c.Start(r)
 
 	// testing results
@@ -107,9 +107,9 @@ func TestNewLines(t *testing.T) {
 			t.Fatal(err)
 			continue
 		}
-		cmp := bytes.Compare(data, target_bytes)
+		cmp := bytes.Compare(data, targetBytes)
 		if cmp != 0 {
-			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(target_bytes), string(data))
+			t.Errorf("Incorrect string found. Expected- %s, Found- %s", string(targetBytes), string(data))
 		}
 	}
 }
