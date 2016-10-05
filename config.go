@@ -9,24 +9,24 @@ import (
 
 // XXX: Move it to constants.go if needed
 const (
-	APP_NAME = "funnel"
+	AppName = "funnel"
 
 	// config keys
-	LOGGING_DIRECTORY            = "logging.directory"
-	LOGGING_ACTIVE_FILE_NAME     = "logging.active_file_name"
-	ROTATION_MAX_LINES           = "rotation.max_lines"
-	ROTATION_MAX_FILE_SIZE_BYTES = "rotation.max_file_size_bytes"
-	FLUSHING_TIME_INTERVAL_SECS  = "flushing.time_interval_secs"
+	LoggingDirectory         = "logging.directory"
+	LoggingActiveFileName    = "logging.active_file_name"
+	RotationMaxLines         = "rotation.max_lines"
+	RotationMaxFileSizeBytes = "rotation.max_file_size_bytes"
+	FlushingTimeIntervalSecs = "flushing.time_interval_secs"
 )
 
 // ConfigValueError holds the error value if a config key contains
 // an invalid value
 type ConfigValueError struct {
-	key string
+	Key string
 }
 
 func (e *ConfigValueError) Error() string {
-	return "Invalid config value entered for - " + e.key
+	return "Invalid config value entered for - " + e.Key
 }
 
 // Config holds all the config settings
@@ -44,8 +44,8 @@ type Config struct {
 // to the consumer
 func GetConfig() (*Config, error) {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("/etc/" + APP_NAME + "/")
-	viper.AddConfigPath("$HOME/." + APP_NAME)
+	viper.AddConfigPath("/etc/" + AppName + "/")
+	viper.AddConfigPath("$HOME/." + AppName)
 	viper.AddConfigPath(".")
 
 	// Set default values. They are overridden by config file values, if provided
@@ -69,27 +69,27 @@ func GetConfig() (*Config, error) {
 
 	// return struct
 	return &Config{
-		DirName:                  viper.GetString(LOGGING_DIRECTORY),
-		ActiveFileName:           viper.GetString(LOGGING_ACTIVE_FILE_NAME),
-		RotationMaxLines:         viper.GetInt(ROTATION_MAX_LINES),
-		RotationMaxBytes:         uint64(viper.GetInt64(ROTATION_MAX_FILE_SIZE_BYTES)),
-		FlushingTimeIntervalSecs: viper.GetInt(FLUSHING_TIME_INTERVAL_SECS),
+		DirName:                  viper.GetString(LoggingDirectory),
+		ActiveFileName:           viper.GetString(LoggingActiveFileName),
+		RotationMaxLines:         viper.GetInt(RotationMaxLines),
+		RotationMaxBytes:         uint64(viper.GetInt64(RotationMaxFileSizeBytes)),
+		FlushingTimeIntervalSecs: viper.GetInt(FlushingTimeIntervalSecs),
 	}, nil
 }
 
 func setDefaults() {
-	viper.SetDefault(LOGGING_DIRECTORY, "log")
-	viper.SetDefault(LOGGING_ACTIVE_FILE_NAME, "out.log")
-	viper.SetDefault(ROTATION_MAX_LINES, 100)
-	viper.SetDefault(ROTATION_MAX_FILE_SIZE_BYTES, 1000000)
-	viper.SetDefault(FLUSHING_TIME_INTERVAL_SECS, 5)
+	viper.SetDefault(LoggingDirectory, "log")
+	viper.SetDefault(LoggingActiveFileName, "out.log")
+	viper.SetDefault(RotationMaxLines, 100)
+	viper.SetDefault(RotationMaxFileSizeBytes, 1000000)
+	viper.SetDefault(FlushingTimeIntervalSecs, 5)
 }
 
 func validateConfig() error {
 	// Validate strings
 	for _, key := range []string{
-		LOGGING_DIRECTORY,
-		LOGGING_ACTIVE_FILE_NAME,
+		LoggingDirectory,
+		LoggingActiveFileName,
 	} {
 		// If a string value got successfully converted to integer,
 		// then its incorrect
@@ -100,9 +100,9 @@ func validateConfig() error {
 
 	// Validate integers
 	for _, key := range []string{
-		ROTATION_MAX_LINES,
-		ROTATION_MAX_FILE_SIZE_BYTES,
-		FLUSHING_TIME_INTERVAL_SECS,
+		RotationMaxLines,
+		RotationMaxFileSizeBytes,
+		FlushingTimeIntervalSecs,
 	} {
 		// If an integer value was a string, it would come as zero,
 		// hence its invalid

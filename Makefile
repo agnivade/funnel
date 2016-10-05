@@ -6,5 +6,8 @@ build:
 install:
 	go install ./cmd/funnel
 
+lint:
+	gofmt -l -s -w . && go tool vet -all . && golint
+
 test:
-	gofmt -l -s -w . && go tool vet -all . && go test -race -v
+	go test -race -v
