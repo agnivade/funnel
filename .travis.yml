@@ -1,5 +1,8 @@
 language: go
 
+install:
+- go get github.com/spf13/viper
+
 go:
 - 1.5
 - 1.6
