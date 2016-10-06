@@ -1,0 +1,11 @@
+# Sample config file
+# The values mentioned are the default values
+
+[logging]
+directory = "log"
+active_file_name = "out.log"
+
+[rotation]
+max_lines = 125
+max_file_size_bytes = 125
+

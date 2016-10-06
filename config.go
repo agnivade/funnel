@@ -40,14 +40,17 @@ type Config struct {
 	FlushingTimeIntervalSecs int
 }
 
-// GetConfig returns the config struct which is then passed
-// to the consumer
-func GetConfig() (*Config, error) {
+// Setting the config file name and the locations to search for the config
+func init() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("/etc/" + AppName + "/")
 	viper.AddConfigPath("$HOME/." + AppName)
 	viper.AddConfigPath(".")
+}
 
+// GetConfig returns the config struct which is then passed
+// to the consumer
+func GetConfig() (*Config, error) {
 	// Set default values. They are overridden by config file values, if provided
 	setDefaults()
 

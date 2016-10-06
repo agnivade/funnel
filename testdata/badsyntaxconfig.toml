@@ -1,0 +1,9 @@
+# Test config file with bad syntax
+
+[logging]
+directory = "testdir"
+active_file_name = "testfile"
+
+tation]
+max_lines = 100
+max_file_size_bytes = 4509

@@ -1,0 +1,9 @@
+# Test config file
+
+[logging]
+directory = "testdir"
+active_file_name = "testfile"
+
+[rotation]
+max_lines = 100
+max_file_size_bytes = 4509
