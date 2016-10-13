@@ -16,5 +16,15 @@ time_interval_secs = 5
 file_rename_format = "TBD"
 
 [misc]
-prepend_timestamp = false
+# Populate the following variable if you want to
+# prepend your log line with a predefined text.
+# There are some template values you can use too.
+# {{.Timestamp}} expands to a timestamp in RFC822 format
+# {{.UnixTimestamp}} expands to a unix epoch timestamp to nanosecond precision
+#
+# Example -
+# prepend_value = "[app_name]- "
+# prepend_value = "[app_name] {{.Timestamp}}- "
+prepend_value = ""
+
 expose_stats_endpoint = false

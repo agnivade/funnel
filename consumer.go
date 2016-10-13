@@ -15,7 +15,8 @@ import (
 // Consumer is the main struct which holds all the stuff
 // necessary to run the code
 type Consumer struct {
-	Config *Config
+	Config        *Config
+	LineProcessor LineProcessor
 
 	// internal stuff
 	currFile *os.File
@@ -176,8 +177,7 @@ func (c *Consumer) startFeed() {
 	for {
 		select {
 		case line := <-c.feed: // Write to buffered writer
-			//TODO: process the line
-			_, err := fmt.Fprint(c.writer, line)
+			err := c.LineProcessor.Write(c.writer, line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return

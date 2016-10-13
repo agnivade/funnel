@@ -8,6 +8,9 @@ import (
 )
 
 // TODO: add rollup policies
+// file renaming - timestamp or serial
+// gzip files or not
+// delete files older than
 
 // TODO: add line processor
 
@@ -23,9 +26,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Get the line processor depending on the config
+	lp := funnel.GetLineProcessor(cfg)
+
 	// Initialise consumer
 	c := &funnel.Consumer{
-		Config: cfg,
+		Config:        cfg,
+		LineProcessor: lp,
 	}
 	c.Start(os.Stdin)
 }

@@ -28,6 +28,7 @@ func TestSanity(t *testing.T) {
 		100,
 		uint64(4509),
 		5,
+		"",
 	}
 
 	cfgValue := reflect.ValueOf(cfg).Elem()

@@ -159,6 +159,7 @@ func setupTest(t *testing.T) (string, *Consumer) {
 			RotationMaxBytes:         1000000,
 			FlushingTimeIntervalSecs: 5,
 		},
+		LineProcessor: &NoProcessor{},
 	}
 	return dir, c
 }

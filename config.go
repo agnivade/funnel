@@ -17,6 +17,7 @@ const (
 	RotationMaxLines         = "rotation.max_lines"
 	RotationMaxFileSizeBytes = "rotation.max_file_size_bytes"
 	FlushingTimeIntervalSecs = "flushing.time_interval_secs"
+	PrependValue             = "misc.prepend_value"
 )
 
 // ConfigValueError holds the error value if a config key contains
@@ -38,6 +39,8 @@ type Config struct {
 	RotationMaxBytes uint64
 
 	FlushingTimeIntervalSecs int
+
+	PrependValue string
 }
 
 // Setting the config file name and the locations to search for the config
@@ -77,6 +80,7 @@ func GetConfig() (*Config, error) {
 		RotationMaxLines:         viper.GetInt(RotationMaxLines),
 		RotationMaxBytes:         uint64(viper.GetInt64(RotationMaxFileSizeBytes)),
 		FlushingTimeIntervalSecs: viper.GetInt(FlushingTimeIntervalSecs),
+		PrependValue:             viper.GetString(PrependValue),
 	}, nil
 }
 
@@ -86,6 +90,7 @@ func setDefaults() {
 	viper.SetDefault(RotationMaxLines, 100)
 	viper.SetDefault(RotationMaxFileSizeBytes, 1000000)
 	viper.SetDefault(FlushingTimeIntervalSecs, 5)
+	viper.SetDefault(PrependValue, "")
 }
 
 func validateConfig() error {
@@ -93,6 +98,7 @@ func validateConfig() error {
 	for _, key := range []string{
 		LoggingDirectory,
 		LoggingActiveFileName,
+		PrependValue,
 	} {
 		// If a string value got successfully converted to integer,
 		// then its incorrect
