@@ -12,11 +12,9 @@ import (
 // gzip files or not
 // delete files older than
 
-// TODO: add line processor
-
 // TODO: add http stats endpoint conditionally
 
-// files - config reader, rollup manager (gzip, deleting)
+// files -rollup manager (gzip, deleting)
 
 func main() {
 	// Read config

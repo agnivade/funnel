@@ -163,7 +163,7 @@ func (c *Consumer) rename() error {
 	t := time.Now()
 	err := os.Rename(
 		path.Join(c.Config.DirName, c.Config.ActiveFileName),
-		path.Join(c.Config.DirName, t.Format("15_04_05.000-2006_01_02")+".log"),
+		path.Join(c.Config.DirName, t.Format("15_04_05.00000-2006_01_02")+".log"),
 	)
 	if err != nil {
 		return err
