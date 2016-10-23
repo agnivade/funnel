@@ -20,6 +20,15 @@ func TestGetLineProcessor(t *testing.T) {
 
 	cfg = &Config{
 		DirName:      "something",
+		PrependValue: "prepender] ",
+	}
+	lp = GetLineProcessor(cfg)
+	if _, ok := lp.(*SimpleLineProcessor); !ok {
+		t.Errorf("Incorrect line processor returned. Expected *funnel.SimpleLineProcessor, Got %s", reflect.TypeOf(lp))
+	}
+
+	cfg = &Config{
+		DirName:      "something",
 		PrependValue: "prepender {{.Timestamp}}",
 	}
 
