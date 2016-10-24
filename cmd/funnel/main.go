@@ -8,7 +8,6 @@ import (
 )
 
 // TODO: add rollup policies
-// file renaming - timestamp or serial
 // gzip files or not
 // delete files older than
 

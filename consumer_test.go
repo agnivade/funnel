@@ -158,6 +158,7 @@ func setupTest(t *testing.T) (string, *Consumer) {
 			RotationMaxLines:         40,
 			RotationMaxBytes:         1000000,
 			FlushingTimeIntervalSecs: 5,
+			FileRenamePolicy:         "timestamp",
 		},
 		LineProcessor: &NoProcessor{},
 	}

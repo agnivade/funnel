@@ -160,13 +160,14 @@ func (c *Consumer) rollOver() error {
 }
 
 func (c *Consumer) rename() error {
-	t := time.Now()
-	err := os.Rename(
-		path.Join(c.Config.DirName, c.Config.ActiveFileName),
-		path.Join(c.Config.DirName, t.Format("15_04_05.00000-2006_01_02")+".log"),
-	)
-	if err != nil {
-		return err
+	if c.Config.FileRenamePolicy == "timestamp" {
+		if err := renameFileTimestamp(c.Config); err != nil {
+			return err
+		}
+	} else {
+		if err := renameFileSerial(c.Config); err != nil {
+			return err
+		}
 	}
 	return nil
 }

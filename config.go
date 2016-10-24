@@ -1,6 +1,7 @@
 package funnel
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -18,6 +19,7 @@ const (
 	RotationMaxFileSizeBytes = "rotation.max_file_size_bytes"
 	FlushingTimeIntervalSecs = "flushing.time_interval_secs"
 	PrependValue             = "misc.prepend_value"
+	FileRenamePolicy         = "rollup.file_rename_policy"
 )
 
 // ConfigValueError holds the error value if a config key contains
@@ -41,6 +43,8 @@ type Config struct {
 	FlushingTimeIntervalSecs int
 
 	PrependValue string
+
+	FileRenamePolicy string
 }
 
 // Setting the config file name and the locations to search for the config
@@ -81,6 +85,7 @@ func GetConfig() (*Config, error) {
 		RotationMaxBytes:         uint64(viper.GetInt64(RotationMaxFileSizeBytes)),
 		FlushingTimeIntervalSecs: viper.GetInt(FlushingTimeIntervalSecs),
 		PrependValue:             viper.GetString(PrependValue),
+		FileRenamePolicy:         viper.GetString(FileRenamePolicy),
 	}, nil
 }
 
@@ -91,6 +96,7 @@ func setDefaults() {
 	viper.SetDefault(RotationMaxFileSizeBytes, 1000000)
 	viper.SetDefault(FlushingTimeIntervalSecs, 5)
 	viper.SetDefault(PrependValue, "")
+	viper.SetDefault(FileRenamePolicy, "timestamp")
 }
 
 func validateConfig() error {
@@ -99,11 +105,18 @@ func validateConfig() error {
 		LoggingDirectory,
 		LoggingActiveFileName,
 		PrependValue,
+		FileRenamePolicy,
 	} {
 		// If a string value got successfully converted to integer,
 		// then its incorrect
 		if _, err := strconv.Atoi(viper.GetString(key)); err == nil {
 			return &ConfigValueError{key}
+		}
+
+		// File rename policy has to be either timestamp or serial
+		if key == FileRenamePolicy &&
+			(viper.GetString(key) != "timestamp" && viper.GetString(key) != "serial") {
+			return errors.New(key + " can only be timestamp or serial")
 		}
 	}
 

@@ -2,18 +2,31 @@
 # The values mentioned are the default values
 
 [logging]
+# The directory to store the log files
 directory = "log"
+# The name of the current log file
 active_file_name = "out.log"
 
+# File will be rotated whenever any one of these conditions are met
 [rotation]
+# Max no. of lines beyond which the file will rotate
 max_lines = 100
+# Max no. of bytes written to a file beyond which it will rotate
 max_file_size_bytes = 1000000
 
+# The time interval after which the buffer will be flushed to disk
 [flushing]
 time_interval_secs = 5
 
 [rollup]
-file_rename_format = "TBD"
+# Specify file rename policy.
+# Values accepted are
+# timestamp - rotated files will be named with the timestamp at the moment of rotation
+# serial - rotated files will be named serially in an increasing sequence
+file_rename_policy = "timestamp"
+max_age = 10
+max_count = 5
+gzip = false
 
 [misc]
 # Populate the following variable if you want to
