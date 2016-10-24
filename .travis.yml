@@ -2,6 +2,7 @@ language: go
 
 install:
 - go get github.com/spf13/viper
+- go get vbom.ml/util/sortorder
 
 go:
 - 1.5
