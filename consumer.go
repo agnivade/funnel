@@ -98,19 +98,26 @@ func (c *Consumer) Start(inputStream io.Reader) {
 }
 
 func (c *Consumer) cleanUp() {
+	var err error
 	// Close file handle
-	if err := c.currFile.Sync(); err != nil {
+	if err = c.currFile.Sync(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
-	if err := c.currFile.Close(); err != nil {
+	if err = c.currFile.Close(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
 	// Rename the currfile to a rolled up one
-	if err := c.renameAndCompress(); err != nil {
+	var fileName string
+	if err, fileName = c.rename(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
+	if err = c.compress(fileName); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -136,49 +143,59 @@ func (c *Consumer) rollOverCondition() bool {
 }
 
 func (c *Consumer) rollOver() error {
+	var err error
 	// Flush writer
-	if err := c.writer.Flush(); err != nil {
+	if err = c.writer.Flush(); err != nil {
 		return err
 	}
 
 	// Close file handle
-	if err := c.currFile.Sync(); err != nil {
+	if err = c.currFile.Sync(); err != nil {
 		return err
 	}
-	if err := c.currFile.Close(); err != nil {
+	if err = c.currFile.Close(); err != nil {
 		return err
 	}
 
-	if err := c.renameAndCompress(); err != nil {
+	var fileName string
+	if err, fileName = c.rename(); err != nil {
+		return err
+	}
+
+	if err = c.compress(fileName); err != nil {
 		return err
 	}
 
 	// XXX: check if there are any files to delete
 
-	if err := c.createNewFile(); err != nil {
+	if err = c.createNewFile(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Consumer) renameAndCompress() error {
+func (c *Consumer) rename() (error, string) {
 	var fileName string
 	var err error
 	if c.Config.FileRenamePolicy == "timestamp" {
 		err, fileName = renameFileTimestamp(c.Config)
 		if err != nil {
-			return err
+			return err, ""
 		}
 	} else {
 		err, fileName = renameFileSerial(c.Config)
 		if err != nil {
-			return err
+			return err, ""
 		}
 	}
+	return nil, fileName
+}
+
+func (c *Consumer) compress(fileName string) error {
+	// Check config and compress if yes
 	if c.Config.Gzip {
-		if err := gzipFile(path.Join(c.Config.DirName, fileName)); err != nil {
-			return err
-		}
+		err := gzipFile(path.Join(c.Config.DirName, fileName))
+		return err
 	}
 	return nil
 }
