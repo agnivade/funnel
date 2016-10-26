@@ -137,7 +137,5 @@ func validateConfig() error {
 		}
 	}
 
-	// Validate booleans
-
 	return nil
 }

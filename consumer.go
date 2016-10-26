@@ -218,12 +218,17 @@ func (c *Consumer) startFeed() {
 func (c *Consumer) setupSignalHandling() {
 	c.signalChan = make(chan os.Signal, 1)
 	signal.Notify(c.signalChan,
-		os.Interrupt, syscall.SIGPIPE)
+		os.Interrupt, syscall.SIGTERM)
 
 	// Block until a signal is received.
-	// Or EOF happens
 	go func() {
 		for range c.signalChan {
+			// work is done, signalling done channel
+			c.wg.Add(1)
+			c.done <- struct{}{}
+			c.wg.Wait()
+			// Everything taken care of, goodbye
+			os.Exit(1)
 		}
 	}()
 }
