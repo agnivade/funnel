@@ -48,7 +48,7 @@ func (c *Consumer) Start(inputStream io.Reader) {
 	}
 
 	// Create the file
-	if err := c.newFile(); err != nil {
+	if err := c.createNewFile(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -110,13 +110,13 @@ func (c *Consumer) cleanUp() {
 	}
 
 	// Rename the currfile to a rolled up one
-	if err := c.rename(); err != nil {
+	if err := c.renameAndCompress(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 }
 
-func (c *Consumer) newFile() error {
+func (c *Consumer) createNewFile() error {
 	f, err := os.OpenFile(path.Join(c.Config.DirName, c.Config.ActiveFileName),
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_APPEND|os.O_EXCL,
 		0644)
@@ -149,23 +149,34 @@ func (c *Consumer) rollOver() error {
 		return err
 	}
 
-	if err := c.rename(); err != nil {
+	if err := c.renameAndCompress(); err != nil {
 		return err
 	}
 
-	if err := c.newFile(); err != nil {
+	// XXX: check if there are any files to delete
+
+	if err := c.createNewFile(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Consumer) rename() error {
+func (c *Consumer) renameAndCompress() error {
+	var fileName string
+	var err error
 	if c.Config.FileRenamePolicy == "timestamp" {
-		if err := renameFileTimestamp(c.Config); err != nil {
+		err, fileName = renameFileTimestamp(c.Config)
+		if err != nil {
 			return err
 		}
 	} else {
-		if err := renameFileSerial(c.Config); err != nil {
+		err, fileName = renameFileSerial(c.Config)
+		if err != nil {
+			return err
+		}
+	}
+	if c.Config.Gzip {
+		if err := gzipFile(path.Join(c.Config.DirName, fileName)); err != nil {
 			return err
 		}
 	}

@@ -12,6 +12,7 @@ import (
 // delete files older than
 
 // TODO: add http stats endpoint conditionally
+// TODO: decide on using goroutines for gzipping and deleting files
 
 // files -rollup manager (gzip, deleting)
 

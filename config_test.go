@@ -30,6 +30,7 @@ func TestSanity(t *testing.T) {
 		5,
 		"",
 		"timestamp",
+		false,
 	}
 
 	cfgValue := reflect.ValueOf(cfg).Elem()

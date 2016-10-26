@@ -20,6 +20,7 @@ const (
 	FlushingTimeIntervalSecs = "flushing.time_interval_secs"
 	PrependValue             = "misc.prepend_value"
 	FileRenamePolicy         = "rollup.file_rename_policy"
+	Gzip                     = "rollup.gzip"
 )
 
 // ConfigValueError holds the error value if a config key contains
@@ -45,6 +46,7 @@ type Config struct {
 	PrependValue string
 
 	FileRenamePolicy string
+	Gzip             bool
 }
 
 // Setting the config file name and the locations to search for the config
@@ -86,6 +88,7 @@ func GetConfig() (*Config, error) {
 		FlushingTimeIntervalSecs: viper.GetInt(FlushingTimeIntervalSecs),
 		PrependValue:             viper.GetString(PrependValue),
 		FileRenamePolicy:         viper.GetString(FileRenamePolicy),
+		Gzip:                     viper.GetBool(Gzip),
 	}, nil
 }
 
@@ -97,6 +100,7 @@ func setDefaults() {
 	viper.SetDefault(FlushingTimeIntervalSecs, 5)
 	viper.SetDefault(PrependValue, "")
 	viper.SetDefault(FileRenamePolicy, "timestamp")
+	viper.SetDefault(Gzip, false)
 }
 
 func validateConfig() error {
@@ -132,6 +136,8 @@ func validateConfig() error {
 			return &ConfigValueError{key}
 		}
 	}
+
+	// Validate booleans
 
 	return nil
 }
