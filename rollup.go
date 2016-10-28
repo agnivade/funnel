@@ -14,6 +14,7 @@ import (
 	"vbom.ml/util/sortorder"
 )
 
+// Renames a file with the current timestamp
 func renameFileTimestamp(cfg *Config) (error, string) {
 	t := time.Now()
 	err := os.Rename(
@@ -23,6 +24,7 @@ func renameFileTimestamp(cfg *Config) (error, string) {
 	return err, t.Format("15_04_05.00000-2006_01_02") + ".log"
 }
 
+// Renames files serially by increasing suffix by 1
 func renameFileSerial(cfg *Config) (error, string) {
 	// Read all the files from log dir
 	files, err := ioutil.ReadDir(cfg.DirName)
@@ -33,6 +35,7 @@ func renameFileSerial(cfg *Config) (error, string) {
 	// Extracting the file names
 	var fileNames []string
 	for _, file := range files {
+		file.ModTime()
 		fileNames = append(fileNames, file.Name())
 	}
 	// Sorting the files in natural order
@@ -110,4 +113,51 @@ func gzipFile(sourcePath string) error {
 	// Write to the gzip stream
 	_, err = io.Copy(archiver, reader)
 	return err
+}
+
+// ByModTime implements sorting for files by mod time from recent to old
+type ByModTime []os.FileInfo
+
+func (a ByModTime) Len() int           { return len(a) }
+func (a ByModTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByModTime) Less(i, j int) bool { return a[i].ModTime().Unix() > a[j].ModTime().Unix() }
+
+func deleteOldFiles(cfg *Config) error {
+	// Read all the files from log dir
+	files, err := ioutil.ReadDir(cfg.DirName)
+	if err != nil {
+		return err
+	}
+
+	// sort files by mod time
+	sort.Sort(ByModTime(files))
+
+	t := time.Now().Unix()
+	t -= cfg.MaxAge
+	// iterate the list, oldest first
+	for i := len(files) - 1; i >= 0; i-- {
+		file := files[i]
+		// Never remove the active file
+		if file.Name() == cfg.ActiveFileName {
+			continue
+		}
+		modTime := file.ModTime().Unix()
+		// start removing from top if timestamp older than given
+		if modTime < t {
+			err := os.Remove(path.Join(cfg.DirName, file.Name()))
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		// then check if remaining count is more than max, then keep deleting
+		if i+1 > cfg.MaxCount {
+			err := os.Remove(path.Join(cfg.DirName, file.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

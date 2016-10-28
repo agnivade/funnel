@@ -7,14 +7,9 @@ import (
 	"github.com/agnivade/funnel"
 )
 
-// TODO: add rollup policies
-// gzip files or not
-// delete files older than
+// TODO: // delete files older than
 
 // TODO: add http stats endpoint conditionally
-// TODO: decide on using goroutines for gzipping and deleting files
-
-// files -rollup manager (gzip, deleting)
 
 func main() {
 	// Read config

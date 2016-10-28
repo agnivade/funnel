@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+
 	"os"
 	"os/signal"
 	"path"
@@ -166,7 +167,9 @@ func (c *Consumer) rollOver() error {
 		return err
 	}
 
-	// XXX: check if there are any files to delete
+	if err = c.deleteFiles(); err != nil {
+		return err
+	}
 
 	if err = c.createNewFile(); err != nil {
 		return err
@@ -198,6 +201,10 @@ func (c *Consumer) compress(fileName string) error {
 		return err
 	}
 	return nil
+}
+
+func (c *Consumer) deleteFiles() error {
+	return deleteOldFiles(c.Config)
 }
 
 func (c *Consumer) startFeed() {

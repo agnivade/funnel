@@ -10,9 +10,9 @@ active_file_name = "out.log"
 # File will be rotated whenever any one of these conditions are met
 [rotation]
 # Max no. of lines beyond which the file will rotate
-max_lines = 100
+max_lines = 100000 # hundred thousand
 # Max no. of bytes written to a file beyond which it will rotate
-max_file_size_bytes = 1000000
+max_file_size_bytes = 5000000 # 5MB
 
 # The time interval after which the buffer will be flushed to disk
 [flushing]
@@ -24,8 +24,13 @@ time_interval_secs = 5
 # timestamp - rotated files will be named with the timestamp at the moment of rotation
 # serial - rotated files will be named serially in an increasing sequence
 file_rename_policy = "timestamp"
-max_age = 10
-max_count = 5
+# The maximum age of a file beyond which it will be removed
+# Suffix must be either d(days) or h(hours)
+max_age = "30d"
+# The maximum no. of files to keep in the log directory
+# Older files will be deleted first
+max_count = 100
+# Whether to gzip the rolled over files or not
 gzip = false
 
 [misc]

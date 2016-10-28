@@ -20,7 +20,14 @@ const (
 	FlushingTimeIntervalSecs = "flushing.time_interval_secs"
 	PrependValue             = "misc.prepend_value"
 	FileRenamePolicy         = "rollup.file_rename_policy"
+	MaxAge                   = "rollup.max_age"
+	MaxCount                 = "rollup.max_count"
 	Gzip                     = "rollup.gzip"
+)
+
+var (
+	ErrInvalidFileRenamePolicy = errors.New(FileRenamePolicy + " can only be timestamp or serial")
+	ErrInvalidMaxAge           = errors.New(MaxAge + " must end with either d or h and start with a number")
 )
 
 // ConfigValueError holds the error value if a config key contains
@@ -46,6 +53,8 @@ type Config struct {
 	PrependValue string
 
 	FileRenamePolicy string
+	MaxAge           int64
+	MaxCount         int
 	Gzip             bool
 }
 
@@ -88,6 +97,8 @@ func GetConfig() (*Config, error) {
 		FlushingTimeIntervalSecs: viper.GetInt(FlushingTimeIntervalSecs),
 		PrependValue:             viper.GetString(PrependValue),
 		FileRenamePolicy:         viper.GetString(FileRenamePolicy),
+		MaxAge:                   viper.GetInt64(MaxAge),
+		MaxCount:                 viper.GetInt(MaxCount),
 		Gzip:                     viper.GetBool(Gzip),
 	}, nil
 }
@@ -100,6 +111,8 @@ func setDefaults() {
 	viper.SetDefault(FlushingTimeIntervalSecs, 5)
 	viper.SetDefault(PrependValue, "")
 	viper.SetDefault(FileRenamePolicy, "timestamp")
+	viper.SetDefault(MaxAge, "30d")
+	viper.SetDefault(MaxCount, 100)
 	viper.SetDefault(Gzip, false)
 }
 
@@ -110,6 +123,7 @@ func validateConfig() error {
 		LoggingActiveFileName,
 		PrependValue,
 		FileRenamePolicy,
+		MaxAge,
 	} {
 		// If a string value got successfully converted to integer,
 		// then its incorrect
@@ -120,7 +134,7 @@ func validateConfig() error {
 		// File rename policy has to be either timestamp or serial
 		if key == FileRenamePolicy &&
 			(viper.GetString(key) != "timestamp" && viper.GetString(key) != "serial") {
-			return errors.New(key + " can only be timestamp or serial")
+			return ErrInvalidFileRenamePolicy
 		}
 	}
 
@@ -129,12 +143,28 @@ func validateConfig() error {
 		RotationMaxLines,
 		RotationMaxFileSizeBytes,
 		FlushingTimeIntervalSecs,
+		MaxCount,
 	} {
 		// If an integer value was a string, it would come as zero,
 		// hence its invalid
 		if viper.GetInt(key) == 0 {
 			return &ConfigValueError{key}
 		}
+	}
+
+	maxAge := viper.GetString(MaxAge)
+	unit := maxAge[len(maxAge)-1:]
+	magnitude, err := strconv.Atoi(maxAge[0 : len(maxAge)-1])
+	if err != nil {
+		return ErrInvalidMaxAge
+	}
+
+	if unit == "d" {
+		viper.Set(MaxAge, int64(magnitude)*24*60*60)
+	} else if unit == "h" {
+		viper.Set(MaxAge, int64(magnitude)*60*60)
+	} else {
+		return ErrInvalidMaxAge
 	}
 
 	return nil

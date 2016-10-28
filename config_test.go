@@ -30,6 +30,8 @@ func TestSanity(t *testing.T) {
 		5,
 		"",
 		"timestamp",
+		int64(2592000),
+		100,
 		false,
 	}
 
@@ -75,6 +77,8 @@ func TestNoConfigFile(t *testing.T) {
 func TestEnvVars(t *testing.T) {
 	viper.SetConfigName("goodconfig")
 	envValue := "env_var_value"
+	// We need this line to reset the value of maxage to the string representation
+	viper.Set(MaxAge, "30d")
 	os.Setenv("LOGGING_DIRECTORY", envValue)
 
 	cfg, err := GetConfig()

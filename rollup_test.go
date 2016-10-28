@@ -99,6 +99,67 @@ func TestRenameFileSerial(t *testing.T) {
 	}
 }
 
+func TestGzipFile(t *testing.T) {
+	content := []byte("gzip test content")
+	tmpfile, err := ioutil.TempFile("", "example")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := tmpfile.Write(content); err != nil {
+		t.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	gzipFile(tmpfile.Name())
+
+	// check that the file is now deleted
+	_, err = os.Open(tmpfile.Name())
+	if os.IsExist(err) {
+		t.Error(tmpfile.Name() + " exists. Expected to be deleted")
+	}
+
+	// check that a gzip file is there at the same place
+	_, err = os.Open(tmpfile.Name() + ".gz")
+	if os.IsNotExist(err) {
+		t.Error(tmpfile.Name() + ".gz does not exist. Expected to exist")
+	}
+	os.Remove(tmpfile.Name() + ".gz")
+}
+
+func TestMaxFiles(t *testing.T) {
+	cfg := setupRollupTest(t)
+	defer os.RemoveAll(cfg.DirName)
+
+	// Create 13 files in total
+	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	numFiles := 12
+	for i := 1; i <= numFiles; i++ {
+		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i))).Run()
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+	}
+
+	deleteOldFiles(cfg)
+
+	files, err := ioutil.ReadDir(cfg.DirName)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	if len(files) != cfg.MaxCount {
+		t.Errorf("Incorrect no. of files created. Expected %d, Got %d", cfg.MaxCount, len(files))
+	}
+}
+
 // Internal helper functions
 func setupRollupTest(t *testing.T) *Config {
 	dir, err := ioutil.TempDir("", "test")
@@ -114,6 +175,7 @@ func setupRollupTest(t *testing.T) *Config {
 		RotationMaxBytes:         1000000,
 		FlushingTimeIntervalSecs: 5,
 		FileRenamePolicy:         "timestamp",
+		MaxCount:                 5,
 	}
 	return cfg
 }
