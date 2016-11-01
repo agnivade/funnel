@@ -175,6 +175,7 @@ func setupRollupTest(t *testing.T) *Config {
 		RotationMaxBytes:         1000000,
 		FlushingTimeIntervalSecs: 5,
 		FileRenamePolicy:         "timestamp",
+		MaxAge:                   1 * 24 * 60 * 60,
 		MaxCount:                 5,
 	}
 	return cfg
