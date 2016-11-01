@@ -72,10 +72,13 @@ func TestRenameFileSerial(t *testing.T) {
 	}
 
 	// Rename the files
-	err, _ = renameFileSerial(cfg)
+	err, fileName := renameFileSerial(cfg)
 	if err != nil {
 		t.Fatal(err)
 		return
+	}
+	if fileName != cfg.ActiveFileName+".1" {
+		t.Errorf("Incorrect active file name received. Expected %s, Got %s", cfg.ActiveFileName+".1", fileName)
 	}
 	files, err := ioutil.ReadDir(cfg.DirName)
 	if err != nil {
@@ -95,6 +98,57 @@ func TestRenameFileSerial(t *testing.T) {
 	for i := 1; i <= len(fileNames); i++ {
 		if fileNames[i-1] != cfg.ActiveFileName+"."+strconv.Itoa(i) {
 			t.Errorf("Incorrect file created. Expected %s, Got %s", cfg.ActiveFileName+"."+strconv.Itoa(i), fileNames[i])
+		}
+	}
+}
+
+func TestRenameFileSerialGzip(t *testing.T) {
+	cfg := setupRollupTest(t)
+	cfg.Gzip = true
+	defer os.RemoveAll(cfg.DirName)
+
+	// Create a whole lot of files
+	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	numFiles := 12
+	for i := 1; i <= numFiles; i++ {
+		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i)+".gz")).Run()
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+	}
+
+	// Rename the files
+	err, fileName := renameFileSerial(cfg)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	if fileName != cfg.ActiveFileName+".1" {
+		t.Errorf("Incorrect active file name received. Expected %s, Got %s", cfg.ActiveFileName+".1", fileName)
+	}
+	files, err := ioutil.ReadDir(cfg.DirName)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	if len(files) != numFiles+1 {
+		t.Errorf("Incorrect no. of files created. Expected %d, Got %d", numFiles+1, len(files))
+	}
+	var fileNames []string
+	for _, file := range files {
+		fileNames = append(fileNames, file.Name())
+	}
+	// Sorting the files in natural order
+	sort.Sort(sortorder.Natural(fileNames))
+
+	for i := 2; i <= len(fileNames); i++ {
+		if fileNames[i-1] != cfg.ActiveFileName+"."+strconv.Itoa(i)+".gz" {
+			t.Errorf("Incorrect file created. Expected %s, Got %s", cfg.ActiveFileName+"."+strconv.Itoa(i)+".gz", fileNames[i])
 		}
 	}
 }
