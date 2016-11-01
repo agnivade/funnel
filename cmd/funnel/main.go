@@ -7,9 +7,10 @@ import (
 	"github.com/agnivade/funnel"
 )
 
-// TODO: // delete files older than
-
 // TODO: add http stats endpoint conditionally
+// TODO: test renameFileSerial with gzip
+// TODO: test deleteoldfiles with modTime
+// TODO: test consumer with renameserial and gzip
 
 func main() {
 	// Read config

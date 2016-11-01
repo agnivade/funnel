@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-
 	"os"
 	"os/signal"
 	"path"
@@ -28,6 +27,7 @@ type Consumer struct {
 	done         chan struct{}
 	rolloverChan chan struct{}
 	signalChan   chan os.Signal
+	errChan      chan error
 	wg           sync.WaitGroup
 
 	// variable to track write progress
@@ -41,6 +41,7 @@ func (c *Consumer) Start(inputStream io.Reader) {
 	c.setupSignalHandling()
 	c.done = make(chan struct{})
 	c.rolloverChan = make(chan struct{})
+	c.errChan = make(chan error, 1)
 
 	// Make the dir along with parents
 	if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
@@ -62,32 +63,41 @@ func (c *Consumer) Start(inputStream io.Reader) {
 	reader := bufio.NewReader(inputStream)
 	c.linesWritten = 0
 	c.bytesWritten = 0
+
+	// start a for-select loop to wait until main loop is done, or catch errors
+outer:
 	for {
-		// This will return a line until delimiter
-		// If delimiter is not found, it returns the line with error
-		// so line will always be available
-		// Then we check for error and quit
-		line, err := reader.ReadString('\n')
+		select {
+		case err := <-c.errChan: // error channel to get any errors happening
+			// elsewhere. After printing to stderr, it breaks from the loop
+			fmt.Println(os.Stderr, err)
+			break outer
+		default:
+			// This will return a line until delimiter
+			// If delimiter is not found, it returns the line with error
+			// so line will always be available
+			// Then we check for error and quit
+			line, err := reader.ReadString('\n')
+			// Send to feed
+			c.feed <- line
 
-		// Send to feed
-		c.feed <- line
+			// Update counters
+			c.linesWritten++
+			c.bytesWritten += uint64(len(line))
 
-		// Update counters
-		c.linesWritten++
-		c.bytesWritten += uint64(len(line))
-
-		// Check for rollover
-		if c.rollOverCondition() {
-			c.rolloverChan <- struct{}{}
-			c.linesWritten = 0
-			c.bytesWritten = 0
-		}
-
-		if err != nil {
-			if err != io.EOF {
-				fmt.Fprintln(os.Stderr, err)
+			// Check for rollover
+			if c.rollOverCondition() {
+				c.rolloverChan <- struct{}{}
+				c.linesWritten = 0
+				c.bytesWritten = 0
 			}
-			break
+
+			if err != nil {
+				if err != io.EOF {
+					fmt.Fprintln(os.Stderr, err)
+				}
+				break outer
+			}
 		}
 	}
 	// work is done, signalling done channel
@@ -215,13 +225,11 @@ func (c *Consumer) startFeed() {
 		case line := <-c.feed: // Write to buffered writer
 			err := c.LineProcessor.Write(c.writer, line)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				return
+				c.errChan <- err
 			}
 		case <-c.rolloverChan: // Rollover file to new one
 			if err := c.rollOver(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				return
+				c.errChan <- err
 			}
 		case <-c.done: // Done signal received, close shop
 			ticker.Stop()
@@ -233,7 +241,7 @@ func (c *Consumer) startFeed() {
 			return
 		case <-ticker.C: // If tick happens, flush the writer
 			if err := c.writer.Flush(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				c.errChan <- err
 			}
 		}
 	}
@@ -253,6 +261,7 @@ func (c *Consumer) setupSignalHandling() {
 			c.wg.Wait()
 			// Everything taken care of, goodbye
 			os.Exit(1)
+
 		}
 	}()
 }
