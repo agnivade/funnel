@@ -1,4 +1,4 @@
-all: test install
+all: lint test install
 
 build:
 	go build ./cmd/funnel
