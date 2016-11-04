@@ -70,7 +70,7 @@ outer:
 		select {
 		case err := <-c.errChan: // error channel to get any errors happening
 			// elsewhere. After printing to stderr, it breaks from the loop
-			fmt.Println(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, err)
 			break outer
 		default:
 			// This will return a line until delimiter
