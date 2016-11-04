@@ -188,11 +188,6 @@ func TestMaxFiles(t *testing.T) {
 	defer os.RemoveAll(cfg.DirName)
 
 	// Create 13 files in total
-	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
 	numFiles := 12
 	for i := 1; i <= numFiles; i++ {
 		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i))).Run()
@@ -200,6 +195,11 @@ func TestMaxFiles(t *testing.T) {
 			t.Fatal(err)
 			return
 		}
+	}
+	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
+	if err != nil {
+		t.Fatal(err)
+		return
 	}
 
 	deleteOldFiles(cfg)
@@ -229,7 +229,7 @@ func setupRollupTest(t *testing.T) *Config {
 		RotationMaxBytes:         1000000,
 		FlushingTimeIntervalSecs: 5,
 		FileRenamePolicy:         "timestamp",
-		MaxAge:                   1 * 24 * 60 * 60,
+		MaxAge:                   int64(1 * 24 * 60 * 60),
 		MaxCount:                 5,
 	}
 	return cfg
