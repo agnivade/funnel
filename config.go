@@ -26,8 +26,10 @@ const (
 )
 
 var (
+	// ErrInvalidFileRenamePolicy is raised for invalid values to file rename policy
 	ErrInvalidFileRenamePolicy = errors.New(FileRenamePolicy + " can only be timestamp or serial")
-	ErrInvalidMaxAge           = errors.New(MaxAge + " must end with either d or h and start with a number")
+	// ErrInvalidMaxAge is raised for invalid value in max age - life bad suffixes or no integer value at all
+	ErrInvalidMaxAge = errors.New(MaxAge + " must end with either d or h and start with a number")
 )
 
 // ConfigValueError holds the error value if a config key contains

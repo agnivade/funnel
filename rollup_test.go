@@ -25,7 +25,7 @@ func TestRenameFileTimestamp(t *testing.T) {
 	}
 
 	// Rename the file
-	err, _ = renameFileTimestamp(cfg)
+	_, err = renameFileTimestamp(cfg)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -72,7 +72,7 @@ func TestRenameFileSerial(t *testing.T) {
 	}
 
 	// Rename the files
-	err, fileName := renameFileSerial(cfg)
+	fileName, err := renameFileSerial(cfg)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -123,7 +123,7 @@ func TestRenameFileSerialGzip(t *testing.T) {
 	}
 
 	// Rename the files
-	err, fileName := renameFileSerial(cfg)
+	fileName, err := renameFileSerial(cfg)
 	if err != nil {
 		t.Fatal(err)
 		return

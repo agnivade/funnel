@@ -123,7 +123,7 @@ func (c *Consumer) cleanUp() {
 
 	// Rename the currfile to a rolled up one
 	var fileName string
-	if err, fileName = c.rename(); err != nil {
+	if fileName, err = c.rename(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -169,7 +169,7 @@ func (c *Consumer) rollOver() error {
 	}
 
 	var fileName string
-	if err, fileName = c.rename(); err != nil {
+	if fileName, err = c.rename(); err != nil {
 		return err
 	}
 
@@ -187,21 +187,21 @@ func (c *Consumer) rollOver() error {
 	return nil
 }
 
-func (c *Consumer) rename() (error, string) {
+func (c *Consumer) rename() (string, error) {
 	var fileName string
 	var err error
 	if c.Config.FileRenamePolicy == "timestamp" {
-		err, fileName = renameFileTimestamp(c.Config)
+		fileName, err = renameFileTimestamp(c.Config)
 		if err != nil {
-			return err, ""
+			return "", err
 		}
 	} else {
-		err, fileName = renameFileSerial(c.Config)
+		fileName, err = renameFileSerial(c.Config)
 		if err != nil {
-			return err, ""
+			return "", err
 		}
 	}
-	return nil, fileName
+	return fileName, nil
 }
 
 func (c *Consumer) compress(fileName string) error {

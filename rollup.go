@@ -15,21 +15,21 @@ import (
 )
 
 // Renames a file with the current timestamp
-func renameFileTimestamp(cfg *Config) (error, string) {
+func renameFileTimestamp(cfg *Config) (string, error) {
 	t := time.Now()
 	err := os.Rename(
 		path.Join(cfg.DirName, cfg.ActiveFileName),
 		path.Join(cfg.DirName, t.Format("15_04_05.00000-2006_01_02")+".log"),
 	)
-	return err, t.Format("15_04_05.00000-2006_01_02") + ".log"
+	return t.Format("15_04_05.00000-2006_01_02") + ".log", err
 }
 
 // Renames files serially by increasing suffix by 1
-func renameFileSerial(cfg *Config) (error, string) {
+func renameFileSerial(cfg *Config) (string, error) {
 	// Read all the files from log dir
 	files, err := ioutil.ReadDir(cfg.DirName)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	// Extracting the file names
@@ -74,7 +74,7 @@ func renameFileSerial(cfg *Config) (error, string) {
 				path.Join(cfg.DirName, finalName),
 			)
 			if err != nil {
-				return err, ""
+				return "", err
 			}
 		}
 	}
@@ -85,9 +85,9 @@ func renameFileSerial(cfg *Config) (error, string) {
 		path.Join(cfg.DirName, cfg.ActiveFileName+".1"),
 	)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
-	return nil, cfg.ActiveFileName + ".1"
+	return cfg.ActiveFileName + ".1", nil
 }
 
 func gzipFile(sourcePath string) error {
