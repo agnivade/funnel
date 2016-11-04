@@ -139,7 +139,48 @@ func TestEmptyString(t *testing.T) {
 	}
 }
 
-func TestSendInterrupt(t *testing.T) {
+func TestRolloverSerial(t *testing.T) {
+	dir, c := setupTest(t)
+	c.Config.FileRenamePolicy = "serial"
+	defer os.RemoveAll(dir)
+
+	f, err := os.Open("testdata/file_84lines")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	defer f.Close()
+	c.Start(f)
+
+	// testing results
+	files := readTestDir(t, dir)
+
+	sep := []byte{'\n'}
+	if len(files) != 3 {
+		t.Errorf("Incorrect no. of files created. Expected 3, Got %d", len(files))
+	}
+	for i, file := range files {
+		data, err := ioutil.ReadFile(path.Join(dir, file.Name()))
+		if err != nil {
+			t.Fatal(err)
+			continue
+		}
+		numLines := bytes.Count(data, sep)
+		// First file will have 4 lines
+		// rest will have 40 lines
+		if i == 0 {
+			if numLines != 4 {
+				t.Errorf("Incorrect no. of lines created in file #%d. Expected 4, Got %d", i, numLines)
+			}
+		} else {
+			if numLines != 40 {
+				t.Errorf("Incorrect no. of lines created in file #%d. Expected 40, Got %d", i, numLines)
+			}
+		}
+	}
+}
+
+func TestSendInterruptSerial(t *testing.T) {
 	// TODO
 }
 
