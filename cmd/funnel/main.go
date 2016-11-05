@@ -8,7 +8,6 @@ import (
 )
 
 // TODO: add http stats endpoint conditionally
-// TODO: test deleteoldfiles with modTime
 
 func main() {
 	// Read config

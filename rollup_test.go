@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"testing"
+	"time"
 
 	"vbom.ml/util/sortorder"
 )
@@ -57,18 +58,10 @@ func TestRenameFileSerial(t *testing.T) {
 	defer os.RemoveAll(cfg.DirName)
 
 	// Create a whole lot of files
-	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
-	if err != nil {
+	numFiles := 13
+	if err := populateFiles(cfg, numFiles); err != nil {
 		t.Fatal(err)
 		return
-	}
-	numFiles := 12
-	for i := 1; i <= numFiles; i++ {
-		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i))).Run()
-		if err != nil {
-			t.Fatal(err)
-			return
-		}
 	}
 
 	// Rename the files
@@ -187,17 +180,7 @@ func TestMaxFiles(t *testing.T) {
 	cfg := setupRollupTest(t)
 	defer os.RemoveAll(cfg.DirName)
 
-	// Create 13 files in total
-	numFiles := 12
-	for i := 1; i <= numFiles; i++ {
-		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i))).Run()
-		if err != nil {
-			t.Fatal(err)
-			return
-		}
-	}
-	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
-	if err != nil {
+	if err := populateFiles(cfg, 13); err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -211,6 +194,31 @@ func TestMaxFiles(t *testing.T) {
 	}
 	if len(files) != cfg.MaxCount {
 		t.Errorf("Incorrect no. of files created. Expected %d, Got %d", cfg.MaxCount, len(files))
+	}
+}
+
+func TestOldFiles(t *testing.T) {
+	cfg := setupRollupTest(t)
+	defer os.RemoveAll(cfg.DirName)
+	cfg.MaxCount = 100
+	cfg.MaxAge = int64(2)
+
+	if err := populateFiles(cfg, 13); err != nil {
+		t.Fatal(err)
+		return
+	}
+
+	// Sleeping for 5 seconds to let it exceed the max age
+	time.Sleep(time.Second * 5)
+	deleteOldFiles(cfg)
+
+	files, err := ioutil.ReadDir(cfg.DirName)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	if len(files) != 1 {
+		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", len(files))
 	}
 }
 
@@ -233,4 +241,18 @@ func setupRollupTest(t *testing.T) *Config {
 		MaxCount:                 5,
 	}
 	return cfg
+}
+
+func populateFiles(cfg *Config, numFiles int) error {
+	for i := 1; i <= numFiles; i++ {
+		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i))).Run()
+		if err != nil {
+			return err
+		}
+	}
+	err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName)).Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }
