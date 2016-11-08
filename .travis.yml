@@ -4,6 +4,9 @@ install:
 - go get github.com/spf13/viper
 - go get vbom.ml/util/sortorder
 
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+
 go:
 - 1.5
 - 1.6
