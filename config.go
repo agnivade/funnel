@@ -2,16 +2,17 @@ package funnel
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
 // XXX: Move it to constants.go if needed
 const (
-	AppName = "funnel"
-
 	// config keys
 	LoggingDirectory         = "logging.directory"
 	LoggingActiveFileName    = "logging.active_file_name"
@@ -60,65 +61,63 @@ type Config struct {
 	Gzip             bool
 }
 
-// Setting the config file name and the locations to search for the config
 func init() {
-	viper.SetConfigName("config")
-	viper.AddConfigPath("/etc/" + AppName + "/")
-	viper.AddConfigPath("$HOME/." + AppName)
-	viper.AddConfigPath(".")
+
 }
 
 // GetConfig returns the config struct which is then passed
 // to the consumer
-func GetConfig() (*Config, error) {
+func GetConfig(v *viper.Viper) (*Config, chan *Config, error) {
 	// Set default values. They are overridden by config file values, if provided
-	setDefaults()
+	setDefaults(v)
+	// Create a chan to signal any config reload events
+	reloadChan := make(chan *Config)
 
 	// Find and read the config file
-	err := viper.ReadInConfig()
+	err := v.ReadInConfig()
 	// Return the error only if config file is present
-	if err != nil && viper.ConfigFileUsed() != "" {
-		return nil, err
+	if err != nil && v.ConfigFileUsed() != "" {
+		return nil, reloadChan, err
 	}
 
 	// Read from env vars
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// Validate
-	if err := validateConfig(); err != nil {
-		return nil, err
+	if err := validateConfig(v); err != nil {
+		return nil, reloadChan, err
 	}
 
+	v.WatchConfig()
+	v.OnConfigChange(func(e fsnotify.Event) {
+		if e.Op == fsnotify.Write {
+			if err := validateConfig(v); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return
+			}
+			reloadChan <- getConfigStruct(v)
+		}
+	})
+
 	// return struct
-	return &Config{
-		DirName:                  viper.GetString(LoggingDirectory),
-		ActiveFileName:           viper.GetString(LoggingActiveFileName),
-		RotationMaxLines:         viper.GetInt(RotationMaxLines),
-		RotationMaxBytes:         uint64(viper.GetInt64(RotationMaxFileSizeBytes)),
-		FlushingTimeIntervalSecs: viper.GetInt(FlushingTimeIntervalSecs),
-		PrependValue:             viper.GetString(PrependValue),
-		FileRenamePolicy:         viper.GetString(FileRenamePolicy),
-		MaxAge:                   viper.GetInt64(MaxAge),
-		MaxCount:                 viper.GetInt(MaxCount),
-		Gzip:                     viper.GetBool(Gzip),
-	}, nil
+	return getConfigStruct(v), reloadChan, nil
 }
 
-func setDefaults() {
-	viper.SetDefault(LoggingDirectory, "log")
-	viper.SetDefault(LoggingActiveFileName, "out.log")
-	viper.SetDefault(RotationMaxLines, 100)
-	viper.SetDefault(RotationMaxFileSizeBytes, 1000000)
-	viper.SetDefault(FlushingTimeIntervalSecs, 5)
-	viper.SetDefault(PrependValue, "")
-	viper.SetDefault(FileRenamePolicy, "timestamp")
-	viper.SetDefault(MaxAge, "30d")
-	viper.SetDefault(MaxCount, 100)
-	viper.SetDefault(Gzip, false)
+func setDefaults(v *viper.Viper) {
+	v.SetDefault(LoggingDirectory, "log")
+	v.SetDefault(LoggingActiveFileName, "out.log")
+	v.SetDefault(RotationMaxLines, 100)
+	v.SetDefault(RotationMaxFileSizeBytes, 1000000)
+	v.SetDefault(FlushingTimeIntervalSecs, 5)
+	v.SetDefault(PrependValue, "")
+	v.SetDefault(FileRenamePolicy, "timestamp")
+	v.SetDefault(MaxAge, "30d")
+	v.SetDefault(MaxCount, 100)
+	v.SetDefault(Gzip, false)
 }
 
-func validateConfig() error {
+func validateConfig(v *viper.Viper) error {
 	// Validate strings
 	for _, key := range []string{
 		LoggingDirectory,
@@ -129,13 +128,13 @@ func validateConfig() error {
 	} {
 		// If a string value got successfully converted to integer,
 		// then its incorrect
-		if _, err := strconv.Atoi(viper.GetString(key)); err == nil {
+		if _, err := strconv.Atoi(v.GetString(key)); err == nil {
 			return &ConfigValueError{key}
 		}
 
 		// File rename policy has to be either timestamp or serial
 		if key == FileRenamePolicy &&
-			(viper.GetString(key) != "timestamp" && viper.GetString(key) != "serial") {
+			(v.GetString(key) != "timestamp" && v.GetString(key) != "serial") {
 			return ErrInvalidFileRenamePolicy
 		}
 	}
@@ -149,25 +148,48 @@ func validateConfig() error {
 	} {
 		// If an integer value was a string, it would come as zero,
 		// hence its invalid
-		if viper.GetInt(key) == 0 {
+		if v.GetInt(key) == 0 {
 			return &ConfigValueError{key}
 		}
 	}
 
-	maxAge := viper.GetString(MaxAge)
+	// Validate MaxAge
+	maxAge := v.GetString(MaxAge)
 	unit := maxAge[len(maxAge)-1:]
-	magnitude, err := strconv.Atoi(maxAge[0 : len(maxAge)-1])
+	_, err := strconv.Atoi(maxAge[0 : len(maxAge)-1])
 	if err != nil {
 		return ErrInvalidMaxAge
 	}
 
-	if unit == "d" {
-		viper.Set(MaxAge, int64(magnitude)*24*60*60)
-	} else if unit == "h" {
-		viper.Set(MaxAge, int64(magnitude)*60*60)
-	} else {
+	if unit != "d" && unit != "h" {
 		return ErrInvalidMaxAge
 	}
 
 	return nil
+}
+
+func getConfigStruct(v *viper.Viper) *Config {
+	return &Config{
+		DirName:                  v.GetString(LoggingDirectory),
+		ActiveFileName:           v.GetString(LoggingActiveFileName),
+		RotationMaxLines:         v.GetInt(RotationMaxLines),
+		RotationMaxBytes:         uint64(v.GetInt64(RotationMaxFileSizeBytes)),
+		FlushingTimeIntervalSecs: v.GetInt(FlushingTimeIntervalSecs),
+		PrependValue:             v.GetString(PrependValue),
+		FileRenamePolicy:         v.GetString(FileRenamePolicy),
+		MaxAge:                   getMaxAgeValue(v.GetString(MaxAge)),
+		MaxCount:                 v.GetInt(MaxCount),
+		Gzip:                     v.GetBool(Gzip),
+	}
+}
+
+func getMaxAgeValue(maxAge string) int64 {
+	unit := maxAge[len(maxAge)-1:]
+	magnitude, _ := strconv.Atoi(maxAge[0 : len(maxAge)-1])
+
+	if unit == "d" {
+		return int64(magnitude) * 24 * 60 * 60
+	} else {
+		return int64(magnitude) * 60 * 60
+	}
 }

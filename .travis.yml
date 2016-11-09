@@ -1,6 +1,7 @@
 language: go
 
 install:
+- go get github.com/fsnotify/fsnotify
 - go get github.com/spf13/viper
 - go get vbom.ml/util/sortorder
 

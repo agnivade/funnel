@@ -5,13 +5,24 @@ import (
 	"os"
 
 	"github.com/agnivade/funnel"
+	"github.com/spf13/viper"
 )
 
 // TODO: add http stats endpoint conditionally
+const (
+	AppName = "funnel"
+)
 
 func main() {
+	// Setting the config file name and the locations to search for the config
+	v := viper.New()
+	v.SetConfigName("config")
+	v.AddConfigPath("/etc/" + AppName + "/")
+	v.AddConfigPath("$HOME/." + AppName)
+	v.AddConfigPath(".")
+
 	// Read config
-	cfg, err := funnel.GetConfig()
+	cfg, reloadChan, err := funnel.GetConfig(v)
 	if err != nil {
 		fmt.Println("Error in config file: ", err)
 		os.Exit(1)
@@ -24,6 +35,7 @@ func main() {
 	c := &funnel.Consumer{
 		Config:        cfg,
 		LineProcessor: lp,
+		ReloadChan:    reloadChan,
 	}
 	c.Start(os.Stdin)
 }

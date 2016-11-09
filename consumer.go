@@ -29,6 +29,7 @@ type Consumer struct {
 	signalChan   chan os.Signal
 	errChan      chan error
 	wg           sync.WaitGroup
+	ReloadChan   chan *Config
 
 	// variable to track write progress
 	linesWritten int
@@ -68,6 +69,31 @@ func (c *Consumer) Start(inputStream io.Reader) {
 outer:
 	for {
 		select {
+		case cfg := <-c.ReloadChan: // reload channel to listen to any changes in config file
+			c.rolloverChan <- struct{}{} // rolling over first
+			c.linesWritten = 0
+			c.bytesWritten = 0
+			c.Config = cfg                          // setting new config
+			c.LineProcessor = GetLineProcessor(cfg) // setting new line processor
+			// Creating new directory if needed
+			if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
+				c.errChan <- err
+				break
+			}
+			// Deleting and creating new current file, to incorporate any config changes
+			if err := c.currFile.Close(); err != nil {
+				c.errChan <- err
+				break
+			}
+			if err := os.Remove(path.Join(c.Config.DirName, c.Config.ActiveFileName)); err != nil {
+				if !os.IsNotExist(err) {
+					c.errChan <- err
+					break
+				}
+			}
+			if err := c.createNewFile(); err != nil {
+				c.errChan <- err
+			}
 		case err := <-c.errChan: // error channel to get any errors happening
 			// elsewhere. After printing to stderr, it breaks from the loop
 			fmt.Fprintln(os.Stderr, err)

@@ -8,15 +8,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-func init() {
-	viper.AddConfigPath("./testdata/")
-}
-
 // Test whether values are being read properly or not
 func TestSanity(t *testing.T) {
-	viper.SetConfigName("goodconfig")
+	v := viper.New()
+	v.SetConfigName("goodconfig")
+	v.AddConfigPath("./testdata/")
 
-	cfg, err := GetConfig()
+	cfg, _, err := GetConfig(v)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -47,18 +45,22 @@ func TestSanity(t *testing.T) {
 }
 
 func TestBadFile(t *testing.T) {
-	viper.SetConfigName("badsyntaxconfig")
+	v := viper.New()
+	v.SetConfigName("badsyntaxconfig")
+	v.AddConfigPath("./testdata/")
 
-	_, err := GetConfig()
+	_, _, err := GetConfig(v)
 	if err == nil {
 		t.Error("Expected error in config file, got none")
 	}
 }
 
 func TestInvalidConfigValue(t *testing.T) {
-	viper.SetConfigName("invalidvalueconfig")
+	v := viper.New()
+	v.SetConfigName("invalidvalueconfig")
+	v.AddConfigPath("./testdata/")
 
-	_, err := GetConfig()
+	_, _, err := GetConfig(v)
 	if err == nil {
 		t.Error("Expected error in config file, got none")
 	}
@@ -69,19 +71,26 @@ func TestInvalidConfigValue(t *testing.T) {
 	}
 }
 
-// TODO: We need to pass individual viper instances for this
-// marking for later
 func TestNoConfigFile(t *testing.T) {
+	v := viper.New()
+	v.SetConfigName("noconfig")
+	v.AddConfigPath("./testdata/")
+
+	_, _, err := GetConfig(v)
+	if err != nil {
+		t.Error("Did not expect an error for config file not being present. Got - ", err)
+	}
+
 }
 
 func TestEnvVars(t *testing.T) {
-	viper.SetConfigName("goodconfig")
+	v := viper.New()
+	v.SetConfigName("goodconfig")
+	v.AddConfigPath("./testdata/")
 	envValue := "env_var_value"
-	// We need this line to reset the value of maxage to the string representation
-	viper.Set(MaxAge, "30d")
 	os.Setenv("LOGGING_DIRECTORY", envValue)
 
-	cfg, err := GetConfig()
+	cfg, _, err := GetConfig(v)
 	if err != nil {
 		t.Fatal(err)
 		return
