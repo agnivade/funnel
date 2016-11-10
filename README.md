@@ -1,7 +1,5 @@
 # funnel [![Build Status](https://travis-ci.org/agnivade/funnel.svg?branch=master)](https://travis-ci.org/agnivade/funnel) [![Go Report Card](https://goreportcard.com/badge/github.com/agnivade/funnel)](https://goreportcard.com/report/github.com/agnivade/funnel) [![Coverage Report](http://gocover.io/_badge/github.com/agnivade/funnel)](http://gocover.io/github.com/agnivade/funnel)
 
-## Minimalist 12 factor logger written in Golang.
-
 The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it. Funnel is an attempt at a simple log sink to capture log lines from stdout and write them to files.
 
 ### Features quick tour
