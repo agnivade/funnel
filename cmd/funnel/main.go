@@ -14,6 +14,17 @@ const (
 )
 
 func main() {
+	// Verifying whether the app has a piped stdin or not
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	if fi.Mode()&os.ModeNamedPipe == 0 {
+		fmt.Println("No pipe found to consume data from.")
+		os.Exit(1)
+	}
+
 	// Setting the config file name and the locations to search for the config
 	v := viper.New()
 	v.SetConfigName("config")

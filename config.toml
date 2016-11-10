@@ -44,8 +44,3 @@ gzip = false
 # prepend_value = "[app_name]- "
 # prepend_value = "[app_name] {{.Timestamp}}- "
 prepend_value = ""
-# Expose a port which will return a json response containing metrics
-expose_stats_endpoint = false
-# The port no.
-# Note that, if you are running multiple funnel instances, you have to assign different ports
-endpoint_port = 9000
