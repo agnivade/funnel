@@ -15,17 +15,21 @@ The 12 factor [rule](https://12factor.net/logs) for logging says that an app "sh
 
 ### Quickstart
 
-Grab the binary and the config file from here.
+Grab the binary for your platform and the config file from [here](https://github.com/agnivade/funnel/releases/tag/v0.0.1-alpha).
 
 To run, just pipe the output of your app to the funnel binary. Note that, funnel only consumes from stdout, so you might need to redirect stderr to stdout.
 
-`/etc/myapp/bin 2>&1 | funnel`
+```bash
+$/etc/myapp/bin 2>&1 | funnel
+```
 
 P.S. You also need to drop the funnel binary to your $PATH.
 
 The funnel app itself does not give any output except errors. For eg- invalid config file, or insufficient permissions for the log directory. If you are running your app as a service, you can just pipe its output to [logger](http://man7.org/linux/man-pages/man1/logger.1.html).
 
-`/etc/myapp/bin | funnel 2>&1 | logger`
+```bash
+/etc/myapp/bin | funnel 2>&1 | logger
+```
 
 Or just leave it at standard output, if you are running from the terminal.
 
