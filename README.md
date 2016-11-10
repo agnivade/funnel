@@ -26,7 +26,7 @@ P.S. You also need to drop the funnel binary to your $PATH.
 The funnel app itself does not give any output except errors. For eg- invalid config file, or insufficient permissions for the log directory. If you are running your app as a service, you can just pipe its output to [logger](http://man7.org/linux/man-pages/man1/logger.1.html).
 
 ```bash
-/etc/myapp/bin | funnel 2>&1 | logger
+$/etc/myapp/bin 2>&1 | funnel 2>&1 | logger
 ```
 
 Or just leave it at standard output, if you are running from the terminal.
@@ -38,7 +38,7 @@ The config can be specified in a .toml file. The file is part of the repo, which
 To read the config, the app looks for a file named `config.toml` in these locations one by one -
 - `/etc/funnel/config.toml`
 - `$HOME/.funnel/config.toml`
-- `config.toml` (i.e. in the current directory of your target app)
+- `./config.toml` (i.e. in the current directory of your target app)
 
 You can place a global file in `/etc/funnel/` and have separate files in each app directory to have config values overriding the global ones.
 
