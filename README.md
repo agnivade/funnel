@@ -1,6 +1,8 @@
 # funnel [![Build Status](https://travis-ci.org/agnivade/funnel.svg?branch=master)](https://travis-ci.org/agnivade/funnel) [![Go Report Card](https://goreportcard.com/badge/github.com/agnivade/funnel)](https://goreportcard.com/report/github.com/agnivade/funnel) [![Coverage Report](http://gocover.io/_badge/github.com/agnivade/funnel)](http://gocover.io/github.com/agnivade/funnel)
 
-The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it. Funnel is an attempt at a simple log sink to capture log lines from stdout and write them to files.
+The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it.
+
+Funnel is meant to be a replacement for your app's "logger + [logrotate](http://www.linuxcommand.org/man_pages/logrotate8.html)" pipeline. No more sending SIGHUP signals, or reload commands to open a new file. No more setting up conditional flags to switch between writing to console and file when changing from dev to production. All you need to do is just print to stdout and pipe it to funnel. And let it take care of the rest.
 
 ### Features quick tour
 - Basic feature set of a log rotator:
