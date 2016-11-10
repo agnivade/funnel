@@ -189,7 +189,6 @@ func getMaxAgeValue(maxAge string) int64 {
 
 	if unit == "d" {
 		return int64(magnitude) * 24 * 60 * 60
-	} else {
-		return int64(magnitude) * 60 * 60
 	}
+	return int64(magnitude) * 60 * 60
 }
