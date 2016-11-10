@@ -10,4 +10,4 @@ lint:
 	gofmt -l -s -w . && go tool vet -all . && golint
 
 test:
-	go test -race -v
+	go test -race -v -coverprofile=coverage.txt -covermode=atomic

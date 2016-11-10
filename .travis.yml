@@ -6,7 +6,7 @@ install:
 - go get vbom.ml/util/sortorder
 
 after_success:
-- curl http://gocover.io/github.com/agnivade/funnel -v -o /dev/null
+- bash <(curl -s https://codecov.io/bash)
 
 go:
 - 1.5
