@@ -2,8 +2,7 @@ package funnel
 
 import (
 	"errors"
-	"fmt"
-	"os"
+	"log/syslog"
 	"strconv"
 	"strings"
 
@@ -67,7 +66,7 @@ func init() {
 
 // GetConfig returns the config struct which is then passed
 // to the consumer
-func GetConfig(v *viper.Viper) (*Config, chan *Config, error) {
+func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, error) {
 	// Set default values. They are overridden by config file values, if provided
 	setDefaults(v)
 	// Create a chan to signal any config reload events
@@ -93,7 +92,7 @@ func GetConfig(v *viper.Viper) (*Config, chan *Config, error) {
 	v.OnConfigChange(func(e fsnotify.Event) {
 		if e.Op == fsnotify.Write {
 			if err := validateConfig(v); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				logger.Err(err.Error())
 				return
 			}
 			reloadChan <- getConfigStruct(v)

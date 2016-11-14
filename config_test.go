@@ -1,6 +1,7 @@
 package funnel
 
 import (
+	"log/syslog"
 	"os"
 	"reflect"
 	"testing"
@@ -13,8 +14,9 @@ func TestSanity(t *testing.T) {
 	v := viper.New()
 	v.SetConfigName("goodconfig")
 	v.AddConfigPath("./testdata/")
+	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	cfg, _, err := GetConfig(v)
+	cfg, _, err := GetConfig(v, logger)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -48,8 +50,9 @@ func TestBadFile(t *testing.T) {
 	v := viper.New()
 	v.SetConfigName("badsyntaxconfig")
 	v.AddConfigPath("./testdata/")
+	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	_, _, err := GetConfig(v)
+	_, _, err := GetConfig(v, logger)
 	if err == nil {
 		t.Error("Expected error in config file, got none")
 	}
@@ -59,8 +62,9 @@ func TestInvalidConfigValue(t *testing.T) {
 	v := viper.New()
 	v.SetConfigName("invalidvalueconfig")
 	v.AddConfigPath("./testdata/")
+	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	_, _, err := GetConfig(v)
+	_, _, err := GetConfig(v, logger)
 	if err == nil {
 		t.Error("Expected error in config file, got none")
 	}
@@ -75,12 +79,12 @@ func TestNoConfigFile(t *testing.T) {
 	v := viper.New()
 	v.SetConfigName("noconfig")
 	v.AddConfigPath("./testdata/")
+	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	_, _, err := GetConfig(v)
+	_, _, err := GetConfig(v, logger)
 	if err != nil {
 		t.Error("Did not expect an error for config file not being present. Got - ", err)
 	}
-
 }
 
 func TestEnvVars(t *testing.T) {
@@ -89,8 +93,9 @@ func TestEnvVars(t *testing.T) {
 	v.AddConfigPath("./testdata/")
 	envValue := "env_var_value"
 	os.Setenv("LOGGING_DIRECTORY", envValue)
+	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	cfg, _, err := GetConfig(v)
+	cfg, _, err := GetConfig(v, logger)
 	if err != nil {
 		t.Fatal(err)
 		return

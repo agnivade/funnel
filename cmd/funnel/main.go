@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/syslog"
 	"os"
 
 	"github.com/agnivade/funnel"
@@ -14,6 +15,11 @@ const (
 )
 
 func main() {
+	logger, err := syslog.New(syslog.LOG_ERR, AppName)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	// Verifying whether the app has a piped stdin or not
 	fi, err := os.Stdin.Stat()
 	if err != nil {
@@ -33,7 +39,7 @@ func main() {
 	v.AddConfigPath(".")
 
 	// Read config
-	cfg, reloadChan, err := funnel.GetConfig(v)
+	cfg, reloadChan, err := funnel.GetConfig(v, logger)
 	if err != nil {
 		fmt.Println("Error in config file: ", err)
 		os.Exit(1)
@@ -47,6 +53,7 @@ func main() {
 		Config:        cfg,
 		LineProcessor: lp,
 		ReloadChan:    reloadChan,
+		Logger:        logger,
 	}
 	c.Start(os.Stdin)
 }

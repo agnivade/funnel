@@ -2,8 +2,8 @@ package funnel
 
 import (
 	"bufio"
-	"fmt"
 	"io"
+	"log/syslog"
 	"os"
 	"os/signal"
 	"path"
@@ -17,6 +17,7 @@ import (
 type Consumer struct {
 	Config        *Config
 	LineProcessor LineProcessor
+	Logger        *syslog.Writer
 
 	// internal stuff
 	currFile *os.File
@@ -46,13 +47,13 @@ func (c *Consumer) Start(inputStream io.Reader) {
 
 	// Make the dir along with parents
 	if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		c.Logger.Err(err.Error())
 		return
 	}
 
 	// Create the file
 	if err := c.createNewFile(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		c.Logger.Err(err.Error())
 		return
 	}
 
@@ -96,7 +97,7 @@ outer:
 			}
 		case err := <-c.errChan: // error channel to get any errors happening
 			// elsewhere. After printing to stderr, it breaks from the loop
-			fmt.Fprintln(os.Stderr, err)
+			c.Logger.Err(err.Error())
 			break outer
 		default:
 			// This will return a line until delimiter
@@ -120,7 +121,7 @@ outer:
 
 			if err != nil {
 				if err != io.EOF {
-					fmt.Fprintln(os.Stderr, err)
+					c.Logger.Err(err.Error())
 				}
 				break outer
 			}
@@ -138,24 +139,24 @@ func (c *Consumer) cleanUp() {
 	var err error
 	// Close file handle
 	if err = c.currFile.Sync(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		c.Logger.Err(err.Error())
 		return
 	}
 
 	if err = c.currFile.Close(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		c.Logger.Err(err.Error())
 		return
 	}
 
 	// Rename the currfile to a rolled up one
 	var fileName string
 	if fileName, err = c.rename(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		c.Logger.Err(err.Error())
 		return
 	}
 
 	if err = c.compress(fileName); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		c.Logger.Err(err.Error())
 		return
 	}
 }
@@ -260,7 +261,7 @@ func (c *Consumer) startFeed() {
 		case <-c.done: // Done signal received, close shop
 			ticker.Stop()
 			if err := c.writer.Flush(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				c.Logger.Err(err.Error())
 			}
 			c.cleanUp()
 			c.wg.Done()
