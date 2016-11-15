@@ -18,21 +18,13 @@ Funnel is meant to be a replacement for your app's "logger + [logrotate](http://
 
 Grab the binary for your platform and the config file from [here](https://github.com/agnivade/funnel/releases/tag/v0.0.1-alpha).
 
-To run, just pipe the output of your app to the funnel binary. Note that, funnel only consumes from stdout, so you might need to redirect stderr to stdout.
+To run, just pipe the output of your app to the funnel binary. Note that, funnel only consumes from stdin, so you might need to redirect stderr to stdout.
 
 ```bash
 $/etc/myapp/bin 2>&1 | funnel
 ```
 
 P.S. You also need to drop the funnel binary to your $PATH.
-
-The funnel app itself does not give any output except errors. For eg- invalid config file, or insufficient permissions for the log directory. If you are running your app as a service, you can just pipe its output to [logger](http://man7.org/linux/man-pages/man1/logger.1.html).
-
-```bash
-$/etc/myapp/bin 2>&1 | funnel 2>&1 | logger
-```
-
-Or just leave it at standard output, if you are running from the terminal.
 
 ### Configuration
 
