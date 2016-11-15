@@ -16,7 +16,7 @@ Funnel is meant to be a replacement for your app's "logger + [logrotate](http://
 
 ### Quickstart
 
-Grab the binary for your platform and the config file from [here](https://github.com/agnivade/funnel/releases/tag/v0.0.1-alpha).
+Grab the binary for your platform and the config file from [here](https://github.com/agnivade/funnel/releases).
 
 To run, just pipe the output of your app to the funnel binary. Note that, funnel only consumes from stdin, so you might need to redirect stderr to stdout.
 
