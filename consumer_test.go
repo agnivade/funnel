@@ -202,6 +202,7 @@ func setupTest(t *testing.T) (string, *Consumer) {
 			FileRenamePolicy:         "timestamp",
 			MaxAge:                   int64(1 * 60 * 60),
 			MaxCount:                 500,
+			Target:                   "file",
 		},
 		LineProcessor: &NoProcessor{},
 	}

@@ -98,7 +98,7 @@ func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, Ou
 		}
 	})
 	// return output writer by passing the viper instance
-	outputWriter, err := GetOutputWriter(v)
+	outputWriter, err := GetOutputWriter(v, logger)
 	if err != nil {
 		return nil, reloadChan, nil, err
 	}
