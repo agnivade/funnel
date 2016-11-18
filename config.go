@@ -23,6 +23,7 @@ const (
 	MaxAge                   = "rollup.max_age"
 	MaxCount                 = "rollup.max_count"
 	Gzip                     = "rollup.gzip"
+	Target                   = "target.name"
 )
 
 var (
@@ -58,15 +59,13 @@ type Config struct {
 	MaxAge           int64
 	MaxCount         int
 	Gzip             bool
-}
 
-func init() {
-
+	Target string
 }
 
 // GetConfig returns the config struct which is then passed
 // to the consumer
-func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, error) {
+func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, OutputWriter, error) {
 	// Set default values. They are overridden by config file values, if provided
 	setDefaults(v)
 	// Create a chan to signal any config reload events
@@ -76,7 +75,7 @@ func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, er
 	err := v.ReadInConfig()
 	// Return the error only if config file is present
 	if err != nil && v.ConfigFileUsed() != "" {
-		return nil, reloadChan, err
+		return nil, reloadChan, nil, err
 	}
 
 	// Read from env vars
@@ -85,7 +84,7 @@ func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, er
 
 	// Validate
 	if err := validateConfig(v); err != nil {
-		return nil, reloadChan, err
+		return nil, reloadChan, nil, err
 	}
 
 	v.WatchConfig()
@@ -98,9 +97,14 @@ func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, er
 			reloadChan <- getConfigStruct(v)
 		}
 	})
+	// return output writer by passing the viper instance
+	outputWriter, err := GetOutputWriter(v)
+	if err != nil {
+		return nil, reloadChan, nil, err
+	}
 
 	// return struct
-	return getConfigStruct(v), reloadChan, nil
+	return getConfigStruct(v), reloadChan, outputWriter, nil
 }
 
 func setDefaults(v *viper.Viper) {
@@ -114,6 +118,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault(MaxAge, "30d")
 	v.SetDefault(MaxCount, 100)
 	v.SetDefault(Gzip, false)
+	v.SetDefault(Target, "file")
 }
 
 func validateConfig(v *viper.Viper) error {
@@ -124,6 +129,7 @@ func validateConfig(v *viper.Viper) error {
 		PrependValue,
 		FileRenamePolicy,
 		MaxAge,
+		Target,
 	} {
 		// If a string value got successfully converted to integer,
 		// then its incorrect
@@ -179,6 +185,7 @@ func getConfigStruct(v *viper.Viper) *Config {
 		MaxAge:                   getMaxAgeValue(v.GetString(MaxAge)),
 		MaxCount:                 v.GetInt(MaxCount),
 		Gzip:                     v.GetBool(Gzip),
+		Target:                   v.GetString(Target),
 	}
 }
 
