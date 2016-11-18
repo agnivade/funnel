@@ -16,7 +16,7 @@ func TestSanity(t *testing.T) {
 	v.AddConfigPath("./testdata/")
 	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	cfg, _, err := GetConfig(v, logger)
+	cfg, _, _, err := GetConfig(v, logger)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -33,6 +33,7 @@ func TestSanity(t *testing.T) {
 		int64(2592000),
 		100,
 		false,
+		"file",
 	}
 
 	cfgValue := reflect.ValueOf(cfg).Elem()
@@ -52,7 +53,7 @@ func TestBadFile(t *testing.T) {
 	v.AddConfigPath("./testdata/")
 	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	_, _, err := GetConfig(v, logger)
+	_, _, _, err := GetConfig(v, logger)
 	if err == nil {
 		t.Error("Expected error in config file, got none")
 	}
@@ -64,7 +65,7 @@ func TestInvalidConfigValue(t *testing.T) {
 	v.AddConfigPath("./testdata/")
 	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	_, _, err := GetConfig(v, logger)
+	_, _, _, err := GetConfig(v, logger)
 	if err == nil {
 		t.Error("Expected error in config file, got none")
 	}
@@ -81,7 +82,7 @@ func TestNoConfigFile(t *testing.T) {
 	v.AddConfigPath("./testdata/")
 	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	_, _, err := GetConfig(v, logger)
+	_, _, _, err := GetConfig(v, logger)
 	if err != nil {
 		t.Error("Did not expect an error for config file not being present. Got - ", err)
 	}
@@ -95,7 +96,7 @@ func TestEnvVars(t *testing.T) {
 	os.Setenv("LOGGING_DIRECTORY", envValue)
 	logger, _ := syslog.New(syslog.LOG_ERR, "test")
 
-	cfg, _, err := GetConfig(v, logger)
+	cfg, _, _, err := GetConfig(v, logger)
 	if err != nil {
 		t.Fatal(err)
 		return

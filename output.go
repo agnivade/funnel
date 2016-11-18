@@ -2,8 +2,8 @@ package funnel
 
 import (
 	"bufio"
-	"errors"
 	"io"
+	"log/syslog"
 
 	"github.com/spf13/viper"
 )
@@ -17,8 +17,18 @@ type OutputWriter interface {
 	Close() error
 }
 
+// UnregisteredOutputError holds the error if some target was passed from the config
+// which was not registered
+type UnregisteredOutputError struct {
+	target string
+}
+
+func (e *UnregisteredOutputError) Error() string {
+	return "Output " + e.target + " was not registered from any module"
+}
+
 // OutputFactory is a function type which holds the output registry
-type OutputFactory func(v *viper.Viper) (OutputWriter, error)
+type OutputFactory func(v *viper.Viper, logger *syslog.Writer) (OutputWriter, error)
 
 var registeredOutputs = make(map[string]OutputFactory)
 
@@ -30,16 +40,16 @@ func RegisterNewWriter(name string, factory OutputFactory) {
 
 // GetOutputWriter gets the constructor by extracting the target.
 // Then returns the corresponding output writer by calling the constructor
-func GetOutputWriter(v *viper.Viper) (OutputWriter, error) {
+func GetOutputWriter(v *viper.Viper, logger *syslog.Writer) (OutputWriter, error) {
 	target := v.GetString(Target)
 	if target == "file" {
 		return nil, nil
 	}
 	w, ok := registeredOutputs[target]
 	if !ok {
-		return nil, errors.New("hello")
+		return nil, &UnregisteredOutputError{target}
 	}
-	return w(v)
+	return w(v, logger)
 }
 
 // FileOutput is just an embed type which adds the Close method to buffered writer to satisfy the OutputWriter interface
