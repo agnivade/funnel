@@ -18,10 +18,10 @@ type Consumer struct {
 	Config        *Config
 	LineProcessor LineProcessor
 	Logger        *syslog.Writer
+	Writer        OutputWriter
 
 	// internal stuff
 	currFile *os.File
-	writer   *bufio.Writer
 	feed     chan string
 
 	// channel signallers
@@ -44,17 +44,19 @@ func (c *Consumer) Start(inputStream io.Reader) {
 	c.done = make(chan struct{})
 	c.rolloverChan = make(chan struct{})
 	c.errChan = make(chan error, 1)
+	// Check if the target is file, only then create dirs and all
+	if c.Config.Target == "file" {
+		// Make the dir along with parents
+		if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
+			c.Logger.Err(err.Error())
+			return
+		}
 
-	// Make the dir along with parents
-	if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
-		c.Logger.Err(err.Error())
-		return
-	}
-
-	// Create the file
-	if err := c.createNewFile(); err != nil {
-		c.Logger.Err(err.Error())
-		return
+		// Create the file
+		if err := c.createNewFile(); err != nil {
+			c.Logger.Err(err.Error())
+			return
+		}
 	}
 
 	// Create the line feed channel and start the feed goroutine
@@ -76,24 +78,26 @@ outer:
 			c.bytesWritten = 0
 			c.Config = cfg                          // setting new config
 			c.LineProcessor = GetLineProcessor(cfg) // setting new line processor
-			// Creating new directory if needed
-			if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
-				c.errChan <- err
-				break
-			}
-			// Deleting and creating new current file, to incorporate any config changes
-			if err := c.currFile.Close(); err != nil {
-				c.errChan <- err
-				break
-			}
-			if err := os.Remove(path.Join(c.Config.DirName, c.Config.ActiveFileName)); err != nil {
-				if !os.IsNotExist(err) {
+			if c.Config.Target == "file" {
+				// Creating new directory if needed
+				if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
 					c.errChan <- err
 					break
 				}
-			}
-			if err := c.createNewFile(); err != nil {
-				c.errChan <- err
+				// Deleting and creating new current file, to incorporate any config changes
+				if err := c.currFile.Close(); err != nil {
+					c.errChan <- err
+					break
+				}
+				if err := os.Remove(path.Join(c.Config.DirName, c.Config.ActiveFileName)); err != nil {
+					if !os.IsNotExist(err) {
+						c.errChan <- err
+						break
+					}
+				}
+				if err := c.createNewFile(); err != nil {
+					c.errChan <- err
+				}
 			}
 		case err := <-c.errChan: // error channel to get any errors happening
 			// elsewhere. After printing to stderr, it breaks from the loop
@@ -137,27 +141,32 @@ outer:
 
 func (c *Consumer) cleanUp() {
 	var err error
-	// Close file handle
-	if err = c.currFile.Sync(); err != nil {
-		c.Logger.Err(err.Error())
-		return
-	}
+	// If target is a file, close the file handles
+	if c.Config.Target == "file" {
+		// Close file handle
+		if err = c.currFile.Sync(); err != nil {
+			c.Logger.Err(err.Error())
+			return
+		}
 
-	if err = c.currFile.Close(); err != nil {
-		c.Logger.Err(err.Error())
-		return
-	}
+		if err = c.currFile.Close(); err != nil {
+			c.Logger.Err(err.Error())
+			return
+		}
 
-	// Rename the currfile to a rolled up one
-	var fileName string
-	if fileName, err = c.rename(); err != nil {
-		c.Logger.Err(err.Error())
-		return
-	}
+		// Rename the currfile to a rolled up one
+		var fileName string
+		if fileName, err = c.rename(); err != nil {
+			c.Logger.Err(err.Error())
+			return
+		}
 
-	if err = c.compress(fileName); err != nil {
-		c.Logger.Err(err.Error())
-		return
+		if err = c.compress(fileName); err != nil {
+			c.Logger.Err(err.Error())
+			return
+		}
+	} else { // else call the Close function on the writer
+		c.Writer.Close()
 	}
 }
 
@@ -169,7 +178,9 @@ func (c *Consumer) createNewFile() error {
 		return err
 	}
 	c.currFile = f
-	c.writer = bufio.NewWriter(c.currFile)
+	// Embedding buffered writer in another struct to satisfy the OutputWriter interface
+	// This is because in the consume loop, functions are called directly on the writer
+	c.Writer = &FileOutput{bufio.NewWriter(c.currFile)}
 	return nil
 }
 
@@ -183,33 +194,36 @@ func (c *Consumer) rollOverCondition() bool {
 func (c *Consumer) rollOver() error {
 	var err error
 	// Flush writer
-	if err = c.writer.Flush(); err != nil {
+	if err = c.Writer.Flush(); err != nil {
 		return err
 	}
 
-	// Close file handle
-	if err = c.currFile.Sync(); err != nil {
-		return err
-	}
-	if err = c.currFile.Close(); err != nil {
-		return err
-	}
+	// Do file related stuff only if the target is file
+	if c.Config.Target == "file" {
+		// Close file handle
+		if err = c.currFile.Sync(); err != nil {
+			return err
+		}
+		if err = c.currFile.Close(); err != nil {
+			return err
+		}
 
-	var fileName string
-	if fileName, err = c.rename(); err != nil {
-		return err
-	}
+		var fileName string
+		if fileName, err = c.rename(); err != nil {
+			return err
+		}
 
-	if err = c.compress(fileName); err != nil {
-		return err
-	}
+		if err = c.compress(fileName); err != nil {
+			return err
+		}
 
-	if err = c.deleteFiles(); err != nil {
-		return err
-	}
+		if err = c.deleteFiles(); err != nil {
+			return err
+		}
 
-	if err = c.createNewFile(); err != nil {
-		return err
+		if err = c.createNewFile(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -250,7 +264,7 @@ func (c *Consumer) startFeed() {
 	for {
 		select {
 		case line := <-c.feed: // Write to buffered writer
-			err := c.LineProcessor.Write(c.writer, line)
+			err := c.LineProcessor.Write(c.Writer, line)
 			if err != nil {
 				c.errChan <- err
 			}
@@ -260,14 +274,14 @@ func (c *Consumer) startFeed() {
 			}
 		case <-c.done: // Done signal received, close shop
 			ticker.Stop()
-			if err := c.writer.Flush(); err != nil {
+			if err := c.Writer.Flush(); err != nil {
 				c.Logger.Err(err.Error())
 			}
 			c.cleanUp()
 			c.wg.Done()
 			return
 		case <-ticker.C: // If tick happens, flush the writer
-			if err := c.writer.Flush(); err != nil {
+			if err := c.Writer.Flush(); err != nil {
 				c.errChan <- err
 			}
 		}

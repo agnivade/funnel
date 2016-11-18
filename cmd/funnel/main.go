@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/agnivade/funnel"
+	_ "github.com/agnivade/funnel/outputs"
 	"github.com/spf13/viper"
 )
 
@@ -39,7 +40,8 @@ func main() {
 	v.AddConfigPath(".")
 
 	// Read config
-	cfg, reloadChan, err := funnel.GetConfig(v, logger)
+	// The outputWriter is nil if its file output
+	cfg, reloadChan, outputWriter, err := funnel.GetConfig(v, logger)
 	if err != nil {
 		fmt.Println("Error in config file: ", err)
 		os.Exit(1)
@@ -54,6 +56,7 @@ func main() {
 		LineProcessor: lp,
 		ReloadChan:    reloadChan,
 		Logger:        logger,
+		Writer:        outputWriter,
 	}
 	c.Start(os.Stdin)
 }

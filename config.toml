@@ -14,7 +14,8 @@ max_lines = 100000 # hundred thousand
 # Max no. of bytes written to a file beyond which it will rotate
 max_file_size_bytes = 5000000 # 5MB
 
-# The time interval after which the buffer will be flushed to disk
+# The time interval after which the buffer will be flushed to the output target.
+# For some outputs, this might not make sense, it becomes a no-op then.
 [flushing]
 time_interval_secs = 5
 
@@ -44,3 +45,12 @@ gzip = false
 # prepend_value = "[app_name]- "
 # prepend_value = "[app_name] {{.Timestamp}}- "
 prepend_value = ""
+
+# Specifies the output target to send the logs to
+# You can omit this section if you are just logging to files.
+
+# Kafka output example
+# [target]
+# name = "kafka"
+
+
