@@ -5,6 +5,8 @@ install:
 - go get github.com/spf13/viper
 - go get vbom.ml/util/sortorder
 - go get github.com/Shopify/sarama
+- go get gopkg.in/olivere/elastic.v5
+- go get golang.org/x/net/context
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
