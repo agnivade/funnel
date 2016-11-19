@@ -46,7 +46,7 @@ gzip = false
 # prepend_value = "[app_name] {{.Timestamp}}- "
 prepend_value = ""
 
-# Specifies the output target to send the logs to
+# Specifies the output target to send the logs to. Uncomment the output you want.
 # You can omit this section if you are just logging to files.
 
 # Kafka output example
@@ -58,4 +58,12 @@ prepend_value = ""
 # You need not set the below 2 settings. They will be set to kafka default values if not specified
 # flush_frequency_secs = 5 # Best-effort frequency of flushing messages
 # batch_size = 10 # Best-effort num of messages to trigger a flush
+
+# ElasticSearch output example
+# P.S. - Log lines have to be in json parsable format
+# [target]
+# name = "elasticsearch"
+# nodes = ["http://host1:port", "http://host2:port"]
+# index = "testindex"
+# type = "testtype"
 
