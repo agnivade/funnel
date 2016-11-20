@@ -244,7 +244,7 @@ func setupRollupTest(t *testing.T) *Config {
 }
 
 func populateFiles(cfg *Config, numFiles int) error {
-	for i := 1; i <= numFiles; i++ {
+	for i := numFiles; i > 0; i-- {
 		err := exec.Command("touch", path.Join(cfg.DirName, cfg.ActiveFileName+"."+strconv.Itoa(i))).Run()
 		if err != nil {
 			return err
