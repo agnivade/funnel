@@ -60,10 +60,27 @@ prepend_value = ""
 # batch_size = 10 # Best-effort num of messages to trigger a flush
 
 # ElasticSearch output example
-# P.S. - Log lines have to be in json parsable format
+# P.S. Since ES takes json objects, log lines have to be in json.
+# eg lines-
+# {"User": "bacon", "Message": "i will be back !"}
+# {"User": "tea", "Message": "Open the bifrost !"}
 # [target]
 # name = "elasticsearch"
 # nodes = ["http://host1:port", "http://host2:port"]
 # index = "testindex"
 # type = "testtype"
+
+# InfluxDB output example
+# P.S. InfluxDB has the concept of tags and fields. Log lines have to be in this format -
+# {"tags": {"tag1": "value1", "tag2": "other_value1"}, "fields": {"field1": 10, "field2": 20}}
+# {"tags": {"tag1": "value2", "tag2": "other_value2"}, "fields": {"field1": 11, "field2": 21}}
+# [target]
+# name = "influxdb"
+# host = "http://localhost:8086" # or "localhost:8089" in case of udp
+# db = "testdb" # only valid for http. For udp, database if taken from influxDB config
+# protocol = "http" # options are http, udp
+# metric = "testmetric"
+# username = "testuser"
+# password = "testpass"
+# time_precision = "s" # options are "ns", "us" (or "µs"), "ms", "s", "m", "h"
 
