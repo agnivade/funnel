@@ -59,6 +59,13 @@ prepend_value = ""
 # flush_frequency_secs = 5 # Best-effort frequency of flushing messages
 # batch_size = 10 # Best-effort num of messages to trigger a flush
 
+# Redis output example
+# [target]
+# name = "redis"
+# host = "localhost:6379"
+# password = "" # If no password is set, keep it blank
+# channel = "test"
+
 # ElasticSearch output example
 # P.S. Since ES takes json objects, log lines have to be in json.
 # eg lines-
