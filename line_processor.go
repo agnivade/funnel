@@ -1,6 +1,7 @@
 package funnel
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"text/template"
@@ -68,11 +69,14 @@ func (lp *TemplateLineProcessor) Write(w io.Writer, line string) error {
 	// Populating the template data struct
 	t := time.Now()
 	data := templateData{t.Format(time.RFC822), t.UnixNano()}
-	if err := lp.template.Execute(w, data); err != nil {
+	var b bytes.Buffer
+	if err := lp.template.Execute(&b, data); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprint(w, line); err != nil {
+	if _, err := fmt.Fprint(&b, line); err != nil {
 		return err
 	}
-	return nil
+	// Writing the buffer to io.Writer
+	_, err := b.WriteTo(w)
+	return err
 }

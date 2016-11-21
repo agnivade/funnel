@@ -61,10 +61,13 @@ type kafkaOutput struct {
 // Implementing the OutputWriter interface
 
 func (k *kafkaOutput) Write(p []byte) (n int, err error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
 	// Send a msg to the channel
 	k.msgChan <- &sarama.ProducerMessage{
 		Topic: k.topic,
-		Value: sarama.StringEncoder(string(p)),
+		Value: sarama.StringEncoder(string(p[:len(p)-1])), // stripping off the trailing newline
 	}
 	return len(p), nil
 }
