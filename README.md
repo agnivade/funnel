@@ -3,16 +3,17 @@
 
 The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it.
 
-Funnel is meant to be a replacement for your app's "logger + [logrotate](http://www.linuxcommand.org/man_pages/logrotate8.html)" pipeline. No more sending SIGHUP signals, or reload commands to open a new file. No more setting up conditional flags to switch between writing to console and file when changing from dev to production. All you need to do is just print to stdout and pipe it to funnel. And let it take care of the rest.
+Funnel is meant to be a replacement for your app's "logger + [logrotate](http://www.linuxcommand.org/man_pages/logrotate8.html)" pipeline. Think of it as a fluentd/logstash replacement(with minimal features!) but having only stdin as an input. All you need to do is just print to stdout and pipe it to funnel. And let it take care of the rest.
 
 ### Features quick tour
-- Basic feature set of a log rotator:
+- Basic use case of logging to local files. Acts as a log rotator also:
  * Rolling over to a new file
  * Deleting old files
  * Gzipping files
  * File rename policies
 - Prepend each log line with a custom string
-- Live reloading of config file on save. No more messing around with SIGHUP or SIGUSR1.
+- Supports other target outputs like Kafka, ElasticSearch. More info below.
+- Live reloading of config on file save. No more messing around with SIGHUP or SIGUSR1.
 
 ### Quickstart
 
@@ -25,6 +26,18 @@ $/etc/myapp/bin 2>&1 | funnel
 ```
 
 P.S. You also need to drop the funnel binary to your $PATH.
+
+### Target outputs and Use cases
+
+| Output  | Description | Log format  |
+|-------- | ----------- | ----------- |
+| <img src="http://www.iconsdb.com/icons/preview/black/blank-file-xxl.png" height="32" width="32" style="vertical-align: bottom;" /> File | Writes to local files | No format needed. |
+| <img src="https://static.woopra.com/apps/kafka/images/icon-256.png" height="32" width="32" style="vertical-align: bottom;" /> Kafka | Send your log stream to a Kafka topic | No format needed.  |
+| <img src="https://cdn4.iconfinder.com/data/icons/redis-2/1451/Untitled-2-32.png" height="32" width="32" style="vertical-align: bottom;" /> Redis pub-sub | Send your log stream to a Redis pub-sub channel | No format needed. |
+| <img src="https://nr-platform.s3.amazonaws.com/uploads/platform/published_extension/branding_icon/134/logo.png" height="32" width="32" style="vertical-align: bottom;" /> ElasticSearch | Index, Search and Analyze structured JSON logs | Logs have to be in JSON format |
+| <img src="http://lkhill.com/wp/wp-content/uploads/2015/10/influxdb-logo.png" height="32" width="32" style="vertical-align: bottom;" /> InfluxDB | Use InfluxDB if your app emits timeseries data which needs to be queried and graphed | Logs have to be in JSON format with `tags` and `fields` as the keys |
+
+Further details on input log format along with examples can be found in the sample config [file](config.toml#L49).
 
 ### Configuration
 
@@ -42,8 +55,8 @@ Environment variables are also supported and takes the highest precedence. To ge
 - `rollup.file_rename_policy` becomes `ROLLUP_FILE_RENAME_POLICY`
 
 ### TODO:
-- Add benchmarks
-- Add new output targets like ElasticSearch, InfluxDB, AmazonS3
+- Add benchmarks.
+- Add new output targets.
 - Add stats endpoint to expose metrics.
 
 #### Footnote - This project was heavily inspired from the [logsend](https://github.com/ezotrank/logsend) project.
