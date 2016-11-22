@@ -11,8 +11,6 @@ import (
 )
 
 // TODO: add http stats endpoint conditionally
-
-// todo: rectify comment on flushing about targts/files
 const (
 	AppName = "funnel"
 )
