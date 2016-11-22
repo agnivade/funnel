@@ -14,8 +14,9 @@ max_lines = 100000 # hundred thousand
 # Max no. of bytes written to a file beyond which it will rotate
 max_file_size_bytes = 5000000 # 5MB
 
-# The time interval after which the buffer will be flushed to disk.
-# This is only for file output. If other targets need a flush interval, you need to specify it separately. Look at the [target] section for examples.
+# The time interval after which the buffer will be flushed to the output target.
+# For some targets, flushing doesn't make sense. It becomes a no-op then.
+# Other targets have in-built flush frequency. It can be configured in that section.
 [flushing]
 time_interval_secs = 5
 
@@ -64,7 +65,7 @@ prepend_value = ""
 # name = "redis"
 # host = "localhost:6379"
 # password = "" # If no password is set, keep it blank
-# channel = "test"
+# channel = "test" # Specify the channel to publish to
 
 # ElasticSearch output example
 # P.S. Since ES takes json objects, log lines have to be in json.
