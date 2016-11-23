@@ -1,0 +1,3 @@
+BenchmarkNoProcessor-4            500000        2527 ns/op       263 B/op        3 allocs/op
+BenchmarkSimpleProcessor-4        500000        2594 ns/op       340 B/op        4 allocs/op
+BenchmarkTemplateProcessor-4      300000        4192 ns/op       844 B/op        9 allocs/op

@@ -89,3 +89,31 @@ func TestTemplateProcessor(t *testing.T) {
 		t.Errorf("Did not match. Expected \"%s\", Got \"%s\"", regexStr, b.String())
 	}
 }
+
+func BenchmarkNoProcessor(b *testing.B) {
+	lp := &NoProcessor{}
+
+	var buff bytes.Buffer
+	for n := 0; n < b.N; n++ {
+		lp.Write(&buff, string(randStringBytes(50)))
+	}
+}
+
+func BenchmarkSimpleProcessor(b *testing.B) {
+	lp := &SimpleLineProcessor{prependStr: "prepend this"}
+
+	var buff bytes.Buffer
+	for n := 0; n < b.N; n++ {
+		lp.Write(&buff, string(randStringBytes(50)))
+	}
+}
+
+func BenchmarkTemplateProcessor(b *testing.B) {
+	tpl := template.Must(template.New("line").Parse("[myapp {{.UnixTimestamp}}]- "))
+	lp := &TemplateLineProcessor{template: tpl}
+
+	var buff bytes.Buffer
+	for n := 0; n < b.N; n++ {
+		lp.Write(&buff, string(randStringBytes(50)))
+	}
+}

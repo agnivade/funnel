@@ -12,6 +12,9 @@ lint:
 test:
 	go test -race -v -coverprofile=coverage.txt -covermode=atomic
 
+bench:
+	go test -run=XXX -bench=Processor -benchmem
+
 release:
 	GOOS=darwin GOARCH=amd64 go build -o funnel_darwin-amd64 ./cmd/funnel
 	GOOS=linux GOARCH=arm64 go build -o funnel_linux-arm64 ./cmd/funnel
