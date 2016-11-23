@@ -3,9 +3,11 @@ package funnel
 import (
 	"bytes"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"strings"
+	"syscall"
 	"testing"
 )
 
@@ -184,6 +186,46 @@ func TestSendInterruptSerial(t *testing.T) {
 	// TODO
 }
 
+// Benchmarking different file creation and status flags to check write speed
+func benchmarkFileIO(b *testing.B, flags int) {
+	dir, _ := ioutil.TempDir("", "test")
+	f, _ := os.OpenFile(path.Join(dir, "testspeed"),
+		flags,
+		0644)
+	defer f.Sync()
+	defer f.Close()
+	defer os.Remove(f.Name())
+	defer os.RemoveAll(dir)
+
+	for n := 0; n < b.N; n++ {
+		f.Write(randStringBytes(50))
+	}
+}
+
+func BenchmarkFileIO_Append(b *testing.B) {
+	benchmarkFileIO(b, os.O_CREATE|os.O_WRONLY|os.O_APPEND)
+}
+
+func BenchmarkFileIO_Normal(b *testing.B) {
+	benchmarkFileIO(b, os.O_CREATE|os.O_WRONLY)
+}
+
+func BenchmarkFileIO_Sync(b *testing.B) {
+	benchmarkFileIO(b, os.O_CREATE|os.O_WRONLY|os.O_SYNC)
+}
+
+func BenchmarkFileIO_DSync(b *testing.B) {
+	benchmarkFileIO(b, os.O_CREATE|os.O_WRONLY|syscall.O_DSYNC)
+}
+
+func BenchmarkFileIO_AppendSync(b *testing.B) {
+	benchmarkFileIO(b, os.O_CREATE|os.O_WRONLY|os.O_APPEND|os.O_SYNC)
+}
+
+func BenchmarkFileIO_AppendDSync(b *testing.B) {
+	benchmarkFileIO(b, os.O_CREATE|os.O_WRONLY|os.O_APPEND|syscall.O_DSYNC)
+}
+
 // Internal helper functions
 func setupTest(t *testing.T) (string, *Consumer) {
 	dir, err := ioutil.TempDir("", "test")
@@ -216,4 +258,15 @@ func readTestDir(t *testing.T, dir string) []os.FileInfo {
 		return nil
 	}
 	return files
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func randStringBytes(n int) []byte {
+	b := make([]byte, n)
+	for i := 0; i < n-1; i++ {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	b[n-1] = '\n'
+	return b
 }
