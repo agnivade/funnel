@@ -172,7 +172,7 @@ func (c *Consumer) cleanUp() {
 
 func (c *Consumer) createNewFile() error {
 	f, err := os.OpenFile(path.Join(c.Config.DirName, c.Config.ActiveFileName),
-		os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_APPEND|os.O_EXCL,
+		os.O_CREATE|os.O_WRONLY|os.O_EXCL,
 		0644)
 	if err != nil {
 		return err
