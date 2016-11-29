@@ -2,11 +2,13 @@ package funnel
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 )
@@ -186,6 +188,67 @@ func TestSendInterruptSerial(t *testing.T) {
 	// TODO
 }
 
+func TestConfigReload(t *testing.T) {
+	dir, c := setupTest(t)
+	c.Config.FileRenamePolicy = "serial"
+	defer os.RemoveAll(dir)
+
+	// Setting up this reader, writer pipe because we want to write some,
+	// reload config and then again write some
+	rdr, wtr := io.Pipe()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		c.Start(rdr)
+		wg.Done()
+	}()
+	line1 := "hello this is a line\n"
+	line2 := "hello this is another line\n"
+	wtr.Write([]byte(line1))
+	wtr.Write([]byte(line2))
+
+	c.ReloadChan <- &Config{
+		DirName:          dir,
+		ActiveFileName:   "out.log",
+		RotationMaxLines: 40,
+		RotationMaxBytes: 1000000,
+		PrependValue:     "[agniva]",
+		FileRenamePolicy: "serial",
+		MaxAge:           int64(1 * 60 * 60),
+		MaxCount:         500,
+		Target:           "file",
+	}
+
+	wtr.Write([]byte("trying again with a line\n"))
+	wtr.Write([]byte("trying again with another line"))
+	wtr.Close()
+
+	wg.Wait()
+	// testing results
+	files := readTestDir(t, dir)
+	if len(files) != 2 {
+		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", len(files))
+	}
+	data, err := ioutil.ReadFile(path.Join(dir, "out.log.1"))
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	cmp := bytes.Compare(data, []byte("[agniva]trying again with a line\n[agniva]trying again with another line"))
+	if cmp != 0 {
+		t.Errorf("Incorrect string found. Expected- %s, Found- %s", "[agniva]trying again with a line\n[agniva]trying again with another line", string(data))
+	}
+	data2, err := ioutil.ReadFile(path.Join(dir, "out.log.2"))
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	cmp2 := bytes.Compare(data2, []byte(line1+line2))
+	if cmp2 != 0 {
+		t.Errorf("Incorrect string found. Expected- %s, Found- %s", line1+line2, string(data2))
+	}
+}
+
 // Benchmarking different file creation and status flags to check write speed
 func benchmarkFileIO(b *testing.B, flags int) {
 	dir, _ := ioutil.TempDir("", "test")
@@ -247,6 +310,7 @@ func setupTest(t *testing.T) (string, *Consumer) {
 			Target:                   "file",
 		},
 		LineProcessor: &NoProcessor{},
+		ReloadChan:    make(chan *Config),
 	}
 	return dir, c
 }

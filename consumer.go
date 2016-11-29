@@ -72,33 +72,6 @@ func (c *Consumer) Start(inputStream io.Reader) {
 outer:
 	for {
 		select {
-		case cfg := <-c.ReloadChan: // reload channel to listen to any changes in config file
-			c.rolloverChan <- struct{}{} // rolling over first
-			c.linesWritten = 0
-			c.bytesWritten = 0
-			c.Config = cfg                          // setting new config
-			c.LineProcessor = GetLineProcessor(cfg) // setting new line processor
-			if c.Config.Target == "file" {
-				// Creating new directory if needed
-				if err := os.MkdirAll(c.Config.DirName, 0775); err != nil {
-					c.errChan <- err
-					break
-				}
-				// Deleting and creating new current file, to incorporate any config changes
-				if err := c.currFile.Close(); err != nil {
-					c.errChan <- err
-					break
-				}
-				if err := os.Remove(path.Join(c.Config.DirName, c.Config.ActiveFileName)); err != nil {
-					if !os.IsNotExist(err) {
-						c.errChan <- err
-						break
-					}
-				}
-				if err := c.createNewFile(); err != nil {
-					c.errChan <- err
-				}
-			}
 		case err := <-c.errChan: // error channel to get any errors happening
 			// elsewhere. After printing to stderr, it breaks from the loop
 			c.Logger.Err(err.Error())
@@ -271,6 +244,43 @@ func (c *Consumer) startFeed() {
 		case <-c.rolloverChan: // Rollover file to new one
 			if err := c.rollOver(); err != nil {
 				c.errChan <- err
+			}
+		case cfg := <-c.ReloadChan: // reload channel to listen to any changes in config file
+			if err := c.rollOver(); err != nil {
+				c.errChan <- err
+			}
+
+			c.linesWritten = 0
+			c.bytesWritten = 0
+			c.LineProcessor = GetLineProcessor(cfg) // setting new line processor
+			if c.Config.Target == "file" {
+				// create new config dir
+				if err := os.MkdirAll(cfg.DirName, 0775); err != nil {
+					c.errChan <- err
+					break
+				}
+
+				// close old config file
+				if err := c.currFile.Close(); err != nil {
+					c.errChan <- err
+					break
+				}
+
+				// delete old config file
+				if err := os.Remove(path.Join(c.Config.DirName, c.Config.ActiveFileName)); err != nil {
+					if !os.IsNotExist(err) {
+						c.errChan <- err
+						break
+					}
+				}
+			}
+			c.Config = cfg // setting new config
+
+			if c.Config.Target == "file" {
+				// create new config file
+				if err := c.createNewFile(); err != nil {
+					c.errChan <- err
+				}
 			}
 		case <-c.done: // Done signal received, close shop
 			ticker.Stop()
