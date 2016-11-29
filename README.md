@@ -55,7 +55,6 @@ Environment variables are also supported and takes the highest precedence. To ge
 - `rollup.file_rename_policy` becomes `ROLLUP_FILE_RENAME_POLICY`
 
 ### TODO:
-- Add benchmarks.
 - Add new output targets.
 - Add stats endpoint to expose metrics.
 
