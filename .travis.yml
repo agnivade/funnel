@@ -1,14 +1,7 @@
 language: go
 
 install:
-- go get github.com/fsnotify/fsnotify
-- go get github.com/spf13/viper
-- go get vbom.ml/util/sortorder
-- go get golang.org/x/net/context
-- go get github.com/Shopify/sarama
-- go get gopkg.in/olivere/elastic.v5
-- go get github.com/influxdata/influxdb/client/v2
-- go get gopkg.in/redis.v5
+- make get-dep
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
