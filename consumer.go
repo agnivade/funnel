@@ -85,17 +85,6 @@ outer:
 			// Send to feed
 			c.feed <- line
 
-			// Update counters
-			c.linesWritten++
-			c.bytesWritten += uint64(len(line))
-
-			// Check for rollover
-			if c.rollOverCondition() {
-				c.rolloverChan <- struct{}{}
-				c.linesWritten = 0
-				c.bytesWritten = 0
-			}
-
 			if err != nil {
 				if err != io.EOF {
 					c.Logger.Err(err.Error())
@@ -198,6 +187,9 @@ func (c *Consumer) rollOver() error {
 			return err
 		}
 	}
+
+	c.linesWritten = 0
+	c.bytesWritten = 0
 	return nil
 }
 
@@ -241,6 +233,16 @@ func (c *Consumer) startFeed() {
 			if err != nil {
 				c.errChan <- err
 			}
+			// Update counters
+			c.linesWritten++
+			c.bytesWritten += uint64(len(line))
+
+			// Check for rollover
+			if c.rollOverCondition() {
+				if err := c.rollOver(); err != nil {
+					c.errChan <- err
+				}
+			}
 		case <-c.rolloverChan: // Rollover file to new one
 			if err := c.rollOver(); err != nil {
 				c.errChan <- err
@@ -250,8 +252,6 @@ func (c *Consumer) startFeed() {
 				c.errChan <- err
 			}
 
-			c.linesWritten = 0
-			c.bytesWritten = 0
 			c.LineProcessor = GetLineProcessor(cfg) // setting new line processor
 			if c.Config.Target == "file" {
 				// create new config dir
