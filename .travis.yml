@@ -7,7 +7,11 @@ after_success:
 - bash <(curl -s https://codecov.io/bash)
 
 go:
-- 1.5
 - 1.6
 - 1.7
 - tip
+
+matrix:
+  include:
+  - go: 1.5
+    env: GO15VENDOREXPERIMENT=1
