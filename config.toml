@@ -93,6 +93,7 @@ prepend_value = ""
 # time_precision = "s" # options are "ns", "us" (or "µs"), "ms", "s", "m", "h"
 
 # AWS S3 output example
+# P.S. Files in s3 are named with the current timestamp
 # [target]
 # name = "s3"
 # bucket = "bucket-name"
