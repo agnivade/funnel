@@ -92,3 +92,8 @@ prepend_value = ""
 # password = "testpass"
 # time_precision = "s" # options are "ns", "us" (or "µs"), "ms", "s", "m", "h"
 
+# AWS S3 output example
+# [target]
+# name = "s3"
+# bucket = "bucket-name"
+# region = "us-west-2"

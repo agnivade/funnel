@@ -12,6 +12,7 @@ get-dep:
 	go get gopkg.in/olivere/elastic.v5
 	go get github.com/influxdata/influxdb/client/v2
 	go get gopkg.in/redis.v5
+	go get github.com/aws/aws-sdk-go
 
 install:
 	go install ./cmd/funnel
