@@ -110,8 +110,8 @@ func GetConfig(v *viper.Viper, logger *syslog.Writer) (*Config, chan *Config, Ou
 func setDefaults(v *viper.Viper) {
 	v.SetDefault(LoggingDirectory, "log")
 	v.SetDefault(LoggingActiveFileName, "out.log")
-	v.SetDefault(RotationMaxLines, 100)
-	v.SetDefault(RotationMaxFileSizeBytes, 1000000)
+	v.SetDefault(RotationMaxLines, 100000)
+	v.SetDefault(RotationMaxFileSizeBytes, 5000000)
 	v.SetDefault(FlushingTimeIntervalSecs, 5)
 	v.SetDefault(PrependValue, "")
 	v.SetDefault(FileRenamePolicy, "timestamp")
