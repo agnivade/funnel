@@ -13,3 +13,7 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# Binary output from `make release`
+funnel
+funnel_*

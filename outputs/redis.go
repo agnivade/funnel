@@ -1,3 +1,5 @@
+// +build !disableredis
+
 package outputs
 
 // This is redis output writer

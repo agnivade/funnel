@@ -1,3 +1,5 @@
+// +build !disablekafka
+
 package outputs
 
 // This is kafka output writer

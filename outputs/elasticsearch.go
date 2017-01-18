@@ -1,3 +1,5 @@
+// +build !disableelasticsearch
+
 package outputs
 
 // This is the elasticsearch output writer

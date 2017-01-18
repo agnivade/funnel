@@ -1,3 +1,5 @@
+// +build !disables3
+
 package outputs
 
 // This is the aws s3 output writer
