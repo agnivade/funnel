@@ -16,12 +16,12 @@ import (
 
 // Renames a file with the current timestamp
 func renameFileTimestamp(cfg *Config) (string, error) {
-	t := time.Now()
+	newFileName := time.Now().UTC().Format("2006-01-02_15-04-05.00000") + ".log"
 	err := os.Rename(
 		path.Join(cfg.DirName, cfg.ActiveFileName),
-		path.Join(cfg.DirName, t.Format("15_04_05.00000-2006_01_02")+".log"),
+		path.Join(cfg.DirName, newFileName),
 	)
-	return t.Format("15_04_05.00000-2006_01_02") + ".log", err
+	return newFileName, err
 }
 
 // Renames files serially by increasing suffix by 1

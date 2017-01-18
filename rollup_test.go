@@ -1,6 +1,7 @@
 package funnel
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -40,8 +41,11 @@ func TestRenameFileTimestamp(t *testing.T) {
 	if len(files) != 1 {
 		t.Errorf("Incorrect no. of files created. Expected 1, Got %d", len(files))
 	}
+
+	dateRegex := "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+	timeRegex := "[0-9]{2}-[0-9]{2}-[0-9]{2}.[0-9]{5}"
+	regexStr := fmt.Sprintf("%s_%s%s", dateRegex, timeRegex, ".log")
 	for _, file := range files {
-		regexStr := "[0-9]{2}_[0-9]{2}_[0-9]{2}.[0-9]{5}-[0-9]{4}_[0-9]{2}_[0-9]{2}.log"
 		matched, err := regexp.MatchString(regexStr, file.Name())
 		if err != nil {
 			t.Fatal(err)
