@@ -28,5 +28,8 @@ bench:
 
 release:
 	GOOS=darwin GOARCH=amd64 go build -o funnel_darwin-amd64 ./cmd/funnel
+	GOOS=darwin GOARCH=amd64 go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3" -o funnel_minimal_darwin-amd64 ./cmd/funnel
 	GOOS=linux GOARCH=arm64 go build -o funnel_linux-arm64 ./cmd/funnel
+	GOOS=linux GOARCH=arm64 go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3" -o funnel_minimal_linux-arm64 ./cmd/funnel
 	GOOS=linux GOARCH=amd64 go build -o funnel_linux-amd64 ./cmd/funnel
+	GOOS=linux GOARCH=amd64 go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3" -o funnel_minimal_linux-amd64 ./cmd/funnel

@@ -1,3 +1,5 @@
+// +build !disableinfluxdb
+
 package outputs
 
 import (
