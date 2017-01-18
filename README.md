@@ -55,6 +55,23 @@ Environment variables are also supported and takes the highest precedence. To ge
 - `logging.directory` becomes `LOGGING_DIRECTORY`
 - `rollup.file_rename_policy` becomes `ROLLUP_FILE_RENAME_POLICY`
 
+### Disabling outputs
+
+In the case that you don't intend to use the Elasticsearch, InfluxDB, Kafka, Redis or S3 features, e.g. you just want to use the log rotation features, you can reduce the size of the binary by using build tags.
+
+The build tags are:
+- `disableelasticsearch`
+- `disableinfluxdb`
+- `disablekafka`
+- `disableredis`
+- `disables3`
+
+e.g., to build without any of the above outputs:
+
+```
+go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3" ./cmd/funnel
+```
+
 ### TODO:
 - Add new output targets.
 - Add stats endpoint to expose metrics.
