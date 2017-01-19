@@ -43,6 +43,9 @@ func (c *Consumer) Start(inputStream io.Reader) {
 	c.setupSignalHandling()
 	c.done = make(chan struct{})
 	c.rolloverChan = make(chan struct{})
+	// A buffer of 1 is kept for the startFeed loop to be able to write an error
+	// and finish the select case. Otherwise, the main loop will get stuck because
+	// line read won't be complete and startFeed won't be able to write the error
 	c.errChan = make(chan error, 1)
 	// Check if the target is file, only then create dirs and all
 	if c.Config.Target == "file" {
