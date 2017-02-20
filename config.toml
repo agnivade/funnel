@@ -98,3 +98,13 @@ prepend_value = ""
 # name = "s3"
 # bucket = "bucket-name"
 # region = "us-west-2"
+
+# NATS output example
+# [target]
+# You can omit the user and password field if you don't have authentication set up
+# name = "nats"
+# host = "localhost"
+# port = "4222"
+# subject = "testsub"
+# user = "testuser"
+# password = "testpass"

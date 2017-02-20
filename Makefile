@@ -13,6 +13,7 @@ get-dep:
 	go get github.com/influxdata/influxdb/client/v2
 	go get gopkg.in/redis.v5
 	go get github.com/aws/aws-sdk-go
+	go get github.com/nats-io/go-nats
 
 install:
 	go install ./cmd/funnel
