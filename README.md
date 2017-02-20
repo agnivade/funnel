@@ -37,6 +37,7 @@ P.S. You also need to drop the funnel binary to your $PATH.
 | <img src="https://nr-platform.s3.amazonaws.com/uploads/platform/published_extension/branding_icon/134/logo.png" height="32" width="32" style="vertical-align: bottom;" /> ElasticSearch | Index, Search and Analyze structured JSON logs | Logs have to be in JSON format |
 | <img src="https://nr-platform.s3.amazonaws.com/uploads/platform/published_extension/branding_icon/275/AmazonS3.png" height="32" width="32" /> Amazon S3 | Upload your logs to S3 | No format needed. |
 | <img src="http://lkhill.com/wp/wp-content/uploads/2015/10/influxdb-logo.png" height="32" width="32" style="vertical-align: bottom;" /> InfluxDB | Use InfluxDB if your app emits timeseries data which needs to be queried and graphed | Logs have to be in JSON format with `tags` and `fields` as the keys |
+| <img src="https://nats.io/img/logo.png" height="32" width="32" /> NATS| Send your log stream to a NATS subject | No format needed.
 
 Further details on input log format along with examples can be found in the sample config [file](config.toml#L49).
 
@@ -65,15 +66,15 @@ The build tags are:
 - `disablekafka`
 - `disableredis`
 - `disables3`
+- `disablenats`
 
 e.g., to build without any of the above outputs:
 
 ```
-go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3" ./cmd/funnel
+go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3 disablenats" ./cmd/funnel
 ```
 
 ### TODO:
-- Add new output targets.
 - Add stats endpoint to expose metrics.
 
 #### Footnote - This project was heavily inspired from the [logsend](https://github.com/ezotrank/logsend) project.
