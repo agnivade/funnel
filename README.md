@@ -1,5 +1,7 @@
 # funnel [![Build Status](https://travis-ci.org/agnivade/funnel.svg?branch=master)](https://travis-ci.org/agnivade/funnel) [![Go Report Card](https://goreportcard.com/badge/github.com/agnivade/funnel)](https://goreportcard.com/report/github.com/agnivade/funnel) [![codecov](https://codecov.io/gh/agnivade/funnel/branch/master/graph/badge.svg)](https://codecov.io/gh/agnivade/funnel) [![Gitter](https://badges.gitter.im/agnivade/funnel.svg)](https://gitter.im/agnivade/funnel)
 
+[![Join the chat at https://gitter.im/funnel-logger/Lobby](https://badges.gitter.im/funnel-logger/Lobby.svg)](https://gitter.im/funnel-logger/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it.
 
