@@ -9,9 +9,6 @@ after_success:
 go:
 - 1.6
 - 1.7
+- 1.8
 - tip
 
-matrix:
-  include:
-  - go: 1.5
-    env: GO15VENDOREXPERIMENT=1

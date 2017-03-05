@@ -4,7 +4,7 @@ Hi there :wave:. Pull requests are most welcome !
 
 ## Prerequisites
 
-- You need to have Go (>=1.5) [installed](https://golang.org/doc/install) in your machine.
+- You need to have Go (>=1.6) [installed](https://golang.org/doc/install) in your machine.
 - Git [client](https://git-scm.com/downloads) (duh ..).
 
 ## Working with the code
