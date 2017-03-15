@@ -1,16 +1,17 @@
 # funnel [![Build Status](https://travis-ci.org/agnivade/funnel.svg?branch=master)](https://travis-ci.org/agnivade/funnel) [![Go Report Card](https://goreportcard.com/badge/github.com/agnivade/funnel)](https://goreportcard.com/report/github.com/agnivade/funnel) [![codecov](https://codecov.io/gh/agnivade/funnel/branch/master/graph/badge.svg)](https://codecov.io/gh/agnivade/funnel) [![Gitter](https://badges.gitter.im/agnivade/funnel.svg)](https://gitter.im/agnivade/funnel)
 
+### A new approach to logging
 
 The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it.
 
-Funnel is meant to be a replacement for your app's "logger + [logrotate](http://www.linuxcommand.org/man_pages/logrotate8.html)" pipeline. Think of it as a fluentd/logstash replacement(with minimal features!) but having only stdin as an input. All you need to do is just print to stdout and pipe it to funnel. And let it take care of the rest.
+All you have to do from your app is to print your log line to stdout, and pipe it to funnel. You can still use any logging library inside your app to handle other stuff like log level, structured logging etc. But don't bother about the log destination. Let funnel take care whether you want to just write to files or stream your output to Kafka. Think of it as a fluentd/logstash replacement(with minimal features!) but having only stdin as an input.
 
 ### Features quick tour
-- Basic use case of logging to local files. Acts as a log rotator also:
- * Rolling over to a new file
- * Deleting old files
- * Gzipping files
- * File rename policies
+- Basic use case of logging to local files:
+  * Rolling over to a new file
+  * Deleting old files
+  * Gzipping files
+  * File rename policies
 - Prepend each log line with a custom string
 - Supports other target outputs like Kafka, ElasticSearch. More info below.
 - Live reloading of config on file save. No more messing around with SIGHUP or SIGUSR1.
