@@ -2,7 +2,7 @@
 
 ### A new approach to logging
 
-The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it.
+The 12 factor [rule](https://12factor.net/logs) for logging says that an app "should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout." The execution environment should take care of capturing the logs and perform further processing with it. Funnel *is* this "execution environment".
 
 All you have to do from your app is to print your log line to stdout, and pipe it to funnel. You can still use any logging library inside your app to handle other stuff like log level, structured logging etc. But don't bother about the log destination. Let funnel take care whether you want to just write to files or stream your output to Kafka. Think of it as a fluentd/logstash replacement(with minimal features!) but having only stdin as an input.
 
