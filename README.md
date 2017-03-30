@@ -75,7 +75,11 @@ e.g., to build without any of the above outputs:
 go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3 disablenats" ./cmd/funnel
 ```
 
-### TODO:
-- Add stats endpoint to expose metrics.
+### Windows Support:
+
+Funnel logs its internal errors to syslog. As syslog is not supported on windows, funnel doesn't work on windows -
+https://golang.org/pkg/log/syslog/#pkg-note-BUG
+
+To make it work on windows, just replace the syslog writer with another logging library which atleast has an `Err()` method implemented. 
 
 #### Footnote - This project was heavily inspired from the [logsend](https://github.com/ezotrank/logsend) project.
