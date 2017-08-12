@@ -28,6 +28,16 @@ $/etc/myapp/bin 2>&1 | funnel
 
 P.S. You also need to drop the funnel binary to your $PATH.
 
+### Use in a systemd service
+
+In the [service] section of your file, add these lines - 
+```
+[Service]
+EnvironmentFile=/path/to/env/file (Can contain funnel environment flags)
+ExecStart=/bin/sh -c '/path/to/binary 2>&1 | funnel'
+ExecStop=/usr/bin/pkill -TERM -f "/path/to/binary"
+```
+
 ### Target outputs and Use cases
 
 | Output  | Description | Log format  |
