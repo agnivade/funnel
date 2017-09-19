@@ -34,9 +34,9 @@ func main() {
 
 	// Setting the config file name and the locations to search for the config
 	v := viper.New()
-	v.SetConfigName("config")
+	v.SetConfigName(AppName)
 	v.AddConfigPath("/etc/" + AppName + "/")
-	v.AddConfigPath("$HOME/." + AppName)
+	v.AddConfigPath("$HOME/.config/" + AppName + "/")
 	v.AddConfigPath(".")
 
 	// Read config

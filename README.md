@@ -30,7 +30,7 @@ P.S. You also need to drop the funnel binary to your $PATH.
 
 ### Use in a systemd service
 
-In the [service] section of your file, add these lines - 
+In the [service] section of your file, add these lines -
 ```
 [Service]
 EnvironmentFile=/path/to/env/file (Can contain funnel environment flags)
@@ -50,16 +50,16 @@ ExecStop=/usr/bin/pkill -TERM -f "/path/to/binary"
 | <img src="https://s-media-cache-ak0.pinimg.com/236x/6c/71/45/6c71456fbd7fca223bb08194a35eeb74.jpg" height="32" width="32" style="vertical-align: bottom;" /> InfluxDB | Use InfluxDB if your app emits timeseries data which needs to be queried and graphed | Logs have to be in JSON format with `tags` and `fields` as the keys |
 | <img src="https://nats.io/img/logo.png" height="32" width="32" /> NATS| Send your log stream to a NATS subject | No format needed.
 
-Further details on input log format along with examples can be found in the sample config [file](config.toml#L49).
+Further details on input log format along with examples can be found in the sample config [file](funnel.toml#L49).
 
 ### Configuration
 
-The config can be specified in a .toml file. The file is part of the repo, which you can see [here](config.toml). All the settings are documented and are populated with the default values. The same defaults are embedded in the app itself, so the app can even run without a config file.
+The config can be specified in a .toml file. The file is part of the repo, which you can see [here](funnel.toml). All the settings are documented and are populated with the default values. The same defaults are embedded in the app itself, so the app can even run without a config file.
 
-To read the config, the app looks for a file named `config.toml` in these locations one by one -
-- `/etc/funnel/config.toml`
-- `$HOME/.funnel/config.toml`
-- `./config.toml` (i.e. in the current directory of your target app)
+To read the config, the app looks for a file named `funnel.toml` in these locations one by one -
+- `/etc/funnel/funnel.toml`
+- `$HOME/.config/funnel/funnel.toml`
+- `./funnel.toml` (i.e. in the current directory of your target app)
 
 You can place a global file in `/etc/funnel/` and have separate files in each app directory to have config values overriding the global ones.
 
@@ -90,6 +90,6 @@ go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis d
 Funnel logs its internal errors to syslog. As syslog is not supported on windows, funnel doesn't work on windows -
 https://golang.org/pkg/log/syslog/#pkg-note-BUG
 
-To make it work on windows, just replace the syslog writer with another logging library which atleast has an `Err()` method implemented. 
+To make it work on windows, just replace the syslog writer with another logging library which atleast has an `Err()` method implemented.
 
 #### Footnote - This project was heavily inspired from the [logsend](https://github.com/ezotrank/logsend) project.
