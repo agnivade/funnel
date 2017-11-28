@@ -34,7 +34,9 @@ func newElasticSearchOutput(v *viper.Viper, logger *syslog.Writer) (funnel.Outpu
 	c, err := elastic.NewClient(
 		elastic.SetURL(v.GetStringSlice("target.nodes")...),
 		elastic.SetGzip(true),
-		elastic.SetErrorLog(&ESLogger{logger}))
+		elastic.SetErrorLog(&ESLogger{logger}),
+		elastic.SetBasicAuth(v.GetString("target.username"), v.GetString("target.password")))
+
 	if err != nil {
 		return nil, err
 	}
