@@ -77,6 +77,9 @@ prepend_value = ""
 # nodes = ["http://host1:port", "http://host2:port"]
 # index = "testindex"
 # type = "testtype"
+# You can set the username and password to blank if you are not using basic auth
+# username = "testuser"
+# password = "testpass"
 
 # InfluxDB output example
 # P.S. InfluxDB has the concept of tags and fields. Log lines have to be in this format -
