@@ -39,12 +39,13 @@ gzip = false
 # Populate the following variable if you want to
 # prepend your log line with a predefined text.
 # There are some template values you can use too.
-# {{.Timestamp}} expands to a timestamp in RFC822 format
+# {{.RFC822Timestamp}} expands to a timestamp in RFC822 format
+# {{.ISO8601Timestamp}} expands to a timestamp in ISO8601 format
 # {{.UnixTimestamp}} expands to a unix epoch timestamp to nanosecond precision
 #
 # Example -
 # prepend_value = "[app_name]- "
-# prepend_value = "[app_name] {{.Timestamp}}- "
+# prepend_value = "[app_name] {{.RFC822Timestamp}}- "
 prepend_value = ""
 
 # Specifies the output target to send the logs to. Uncomment the output you want.
