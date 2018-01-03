@@ -61,14 +61,15 @@ type TemplateLineProcessor struct {
 }
 
 type templateData struct {
-	Timestamp     string
-	UnixTimestamp int64
+	RFC822Timestamp  string
+	ISO8601Timestamp string
+	UnixTimestamp    int64
 }
 
 func (lp *TemplateLineProcessor) Write(w io.Writer, line string) error {
 	// Populating the template data struct
 	t := time.Now()
-	data := templateData{t.Format(time.RFC822), t.UnixNano()}
+	data := templateData{t.Format(time.RFC822), t.Format("2006-01-02T15:04:05Z0700"), t.UnixNano()}
 	var b bytes.Buffer
 	if err := lp.template.Execute(&b, data); err != nil {
 		return err

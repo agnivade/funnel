@@ -77,10 +77,29 @@ func TestTemplateProcessor(t *testing.T) {
 	err := lp.Write(&b, line)
 	if err != nil {
 		t.Fatal(err)
-		return
 	}
 	regexStr := "[myapp [0-9]{19}]- " + line
 	matched, err := regexp.MatchString(regexStr, b.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !matched {
+		t.Errorf("Did not match. Expected \"%s\", Got \"%s\"", regexStr, b.String())
+	}
+
+	// Testing ISO8601 timestamp
+	b.Reset()
+	// 2018-01-03T10:53:03+0530
+	tpl = template.Must(template.New("line").Parse("[myapp {{.ISO8601Timestamp}}]- "))
+	lp = &TemplateLineProcessor{template: tpl}
+	line = "write this line"
+
+	err = lp.Write(&b, line)
+	if err != nil {
+		t.Fatal(err)
+	}
+	regexStr = "[myapp [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[Z|+|-]([0-9]{4})?]- " + line
+	matched, err = regexp.MatchString(regexStr, b.String())
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -88,6 +107,7 @@ func TestTemplateProcessor(t *testing.T) {
 	if !matched {
 		t.Errorf("Did not match. Expected \"%s\", Got \"%s\"", regexStr, b.String())
 	}
+
 }
 
 func BenchmarkNoProcessor(b *testing.B) {
