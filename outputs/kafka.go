@@ -27,6 +27,12 @@ func newKafkaOutput(v *viper.Viper, logger *syslog.Writer) (funnel.OutputWriter,
 	if v.IsSet("target.batch_size") {
 		cfg.Producer.Flush.Messages = v.GetInt("target.batch_size")
 	}
+	if v.IsSet("target.max_retries") {
+		cfg.Producer.Retry.Max = v.GetInt("target.max_retries")
+	}
+	if v.IsSet("target.write_timeout_secs") {
+		cfg.Net.WriteTimeout = time.Duration(v.GetInt("target.write_timeout_secs")) * time.Second
+	}
 	cfg.Producer.Return.Successes = false
 	cfg.Producer.Return.Errors = true
 	cfg.Producer.RequiredAcks = sarama.WaitForLocal

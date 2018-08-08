@@ -60,6 +60,8 @@ prepend_value = ""
 # You need not set the below 2 settings. They will be set to kafka default values if not specified
 # flush_frequency_secs = 5 # Best-effort frequency of flushing messages
 # batch_size = 10 # Best-effort num of messages to trigger a flush
+# max_retries = 3 # The total number of times to retry sending a message
+# write_timeout_secs = 30 # How long to wait for a transmit.
 
 # Redis output example
 # [target]
