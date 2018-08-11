@@ -18,7 +18,7 @@ func init() {
 	funnel.RegisterNewWriter("elasticsearch", newElasticSearchOutput)
 }
 
-// This is a wrapper over syslogger to satisfy the logger interface of
+// ESLogger is a wrapper over syslogger to satisfy the logger interface of
 // elasticsearch client
 type ESLogger struct {
 	*syslog.Writer
@@ -26,7 +26,7 @@ type ESLogger struct {
 
 // Printf calls the Err() of the syslog object instead
 func (el *ESLogger) Printf(format string, v ...interface{}) {
-	el.Err(fmt.Sprintf(format, v))
+	el.Err(fmt.Sprintf(format, v...))
 }
 
 func newElasticSearchOutput(v *viper.Viper, logger *syslog.Writer) (funnel.OutputWriter, error) {
