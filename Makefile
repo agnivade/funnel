@@ -19,7 +19,7 @@ install:
 	go install ./cmd/funnel
 
 lint:
-	gofmt -l -s -w . && go tool vet -all . && golint
+	gofmt -l -s -w . && go vet -all ./... && golint -set_exit_status=1 ./...
 
 test:
 	go test -race -v -coverprofile=coverage.txt -covermode=atomic
