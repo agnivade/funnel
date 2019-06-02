@@ -10,7 +10,7 @@ get-dep:
 	go get golang.org/x/net/context
 	go get github.com/Shopify/sarama
 	go get gopkg.in/olivere/elastic.v5
-	go get github.com/influxdata/influxdb/client/v2
+	go get github.com/influxdata/influxdb1-client/v2
 	go get gopkg.in/redis.v5
 	go get github.com/aws/aws-sdk-go
 	go get github.com/nats-io/go-nats
