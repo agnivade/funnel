@@ -1,7 +1,7 @@
 language: go
 
 install:
-- make get-dep
+- if [[ "$TRAVIS_GO_VERSION" == "1.10"* ]]; then make get-dep; fi
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
