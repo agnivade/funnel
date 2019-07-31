@@ -16,7 +16,7 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20180628210949-0892b62f0d9f // indirect
 	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
-	github.com/influxdata/influxdb v1.6.0
+	github.com/influxdata/influxdb1-client v0.0.0-20190402204710-8ff2fc3824fc
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
 	github.com/magiconair/properties v1.8.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20180723221831-d5012789d665 // indirect
