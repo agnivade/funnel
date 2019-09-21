@@ -18,7 +18,7 @@ All you have to do from your app is to print your log line to stdout, and pipe i
 
 ### Quickstart
 
-Grab the binary for your platform and the config file from [here](https://github.com/agnivade/funnel/releases).
+Grab the binary for your platform from [here](https://github.com/agnivade/funnel/releases).
 
 To run, just pipe the output of your app to the funnel binary. Note that, funnel only consumes from stdin, so you might need to redirect stderr to stdout.
 
