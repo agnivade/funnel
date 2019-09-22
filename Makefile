@@ -5,18 +5,6 @@ all: test install
 build:
 	go build ./cmd/funnel
 
-get-dep:
-	go get github.com/fsnotify/fsnotify
-	go get github.com/spf13/viper
-	go get vbom.ml/util/sortorder
-	go get golang.org/x/net/context
-	go get github.com/Shopify/sarama
-	go get gopkg.in/olivere/elastic.v5
-	go get github.com/influxdata/influxdb1-client/v2
-	go get gopkg.in/redis.v5
-	go get github.com/aws/aws-sdk-go
-	go get github.com/nats-io/go-nats
-
 install:
 	go install ./cmd/funnel
 
