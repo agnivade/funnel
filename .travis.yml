@@ -1,14 +1,11 @@
 language: go
 
-install:
-- if [[ "$TRAVIS_GO_VERSION" == "1.10"* ]]; then make get-dep; fi
-
 after_success:
 - bash <(curl -s https://codecov.io/bash)
 
 go:
-- 1.10.x
 - 1.11.x
 - 1.12.x
+- 1.13.x
 - tip
 
