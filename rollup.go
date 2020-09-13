@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"vbom.ml/util/sortorder"
+	"github.com/fvbommel/sortorder"
 )
 
 // Renames a file with the current timestamp

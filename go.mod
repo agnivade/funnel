@@ -11,6 +11,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/fortytw2/leaktest v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/fvbommel/sortorder v1.0.1
 	github.com/golang/protobuf v1.1.0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20180628210949-0892b62f0d9f // indirect
@@ -40,7 +41,6 @@ require (
 	github.com/spf13/pflag v1.0.1 // indirect
 	github.com/spf13/viper v1.0.2
 	github.com/stretchr/testify v1.2.2 // indirect
-	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/crypto v0.0.0-20180723164146-c126467f60eb // indirect
 	golang.org/x/net v0.0.0-20180719180050-a680a1efc54d
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
@@ -51,7 +51,6 @@ require (
 	gopkg.in/redis.v5 v5.2.9
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.2.1 // indirect
-	vbom.ml/util v0.0.0-20170409195630-256737ac55c4
 )
 
 go 1.12
