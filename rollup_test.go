@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"vbom.ml/util/sortorder"
+	"github.com/fvbommel/sortorder"
 )
 
 func TestRenameFileTimestamp(t *testing.T) {
