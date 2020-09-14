@@ -81,7 +81,7 @@ The build tags are:
 
 e.g., to build without any of the above outputs:
 
-```
+```bash
 go build -tags "disableelasticsearch disableinfluxdb disablekafka disableredis disables3 disablenats" ./cmd/funnel
 ```
 
